@@ -527,7 +527,7 @@ export function CaseStudyPage({ caseStudy }) {
   }, []);
 
   return (
-    <div className="case-page" onClick={handleImageClick}>
+    <div className={`case-page case-page--${caseStudy.slug}`} onClick={handleImageClick}>
       {lightbox ? (
         <Lightbox
           src={lightbox.src}

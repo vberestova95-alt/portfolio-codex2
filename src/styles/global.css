@@ -1160,6 +1160,25 @@ ol.case-bullet-list li::before {
   border-radius: var(--r-card);
 }
 
+/* Some exported Yandex boards contain a dark matte in their outermost pixels. */
+.case-page--yandex-turkey .case-hero__media,
+.case-page--yandex-turkey .case-feature-media,
+.case-page--yandex-turkey .case-phone-pair__item {
+  overflow: hidden;
+}
+
+.case-page--yandex-turkey .case-feature-media {
+  border-radius: var(--r-card);
+  background: #e8e8e8;
+}
+
+.case-page--yandex-turkey .case-hero__media img,
+.case-page--yandex-turkey .case-feature-media img,
+.case-page--yandex-turkey .case-phone-pair__item img {
+  transform: scale(1.025);
+  transform-origin: center;
+}
+
 /*
  * A run of prose blocks reads as one sheet of paper with hairline-separated
  * chapters, rather than as N identical stacked cards.
