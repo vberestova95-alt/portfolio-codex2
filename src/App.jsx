@@ -20,6 +20,7 @@ import { observeReveal } from './lib/reveal.js';
 import { HomePage } from './pages/HomePage.jsx';
 import { CaseStudyPage } from './pages/BetboomPassPage.jsx';
 import { DesignConceptsPage } from './pages/DesignConceptsPage.jsx';
+import { NotFoundPage } from './pages/ErrorPage.jsx';
 
 const CASE_STUDIES_BY_PATH = {
   '/betboom-pass': betboomPassCaseStudy,
@@ -43,12 +44,60 @@ function normalizePathname(pathname) {
   return withoutIndex;
 }
 
-export function App() {
-  useEffect(() => observeReveal(), []);
+function getPageMetadata(pathname, currentCaseStudy) {
+  if (pathname === '/') {
+    return {
+      title: 'Vladislava Berestova - Product Designer',
+      description:
+        'Portfolio of Vladislava Berestova, a product designer focused on complex digital systems, design systems, and product-led UX.',
+    };
+  }
 
+  if (pathname === '/design-concepts') {
+    return {
+      title: 'Design Concepts - Vladislava Berestova',
+      description:
+        'Independent interface studies and portfolio concepts exploring art direction, visual systems, and interface craft.',
+    };
+  }
+
+  if (currentCaseStudy) {
+    return {
+      title: `${currentCaseStudy.hero.title} - Vladislava Berestova`,
+      description: currentCaseStudy.hero.description,
+    };
+  }
+
+  return null;
+}
+
+export function App() {
   const pathname =
     typeof window === 'undefined' ? '/' : normalizePathname(window.location.pathname);
   const currentCaseStudy = CASE_STUDIES_BY_PATH[pathname] ?? null;
+  const metadata = getPageMetadata(pathname, currentCaseStudy);
+
+  useEffect(() => observeReveal(), []);
+
+  useEffect(() => {
+    if (!metadata) {
+      return;
+    }
+
+    const description = document.querySelector('meta[name="description"]');
+    const canonical = document.querySelector('link[rel="canonical"]');
+    const openGraphTitle = document.querySelector('meta[property="og:title"]');
+    const openGraphDescription = document.querySelector('meta[property="og:description"]');
+    const openGraphUrl = document.querySelector('meta[property="og:url"]');
+    const canonicalUrl = `https://vberestova.com${pathname === '/' ? '/' : pathname}`;
+
+    document.title = metadata.title;
+    description?.setAttribute('content', metadata.description);
+    canonical?.setAttribute('href', canonicalUrl);
+    openGraphTitle?.setAttribute('content', metadata.title);
+    openGraphDescription?.setAttribute('content', metadata.description);
+    openGraphUrl?.setAttribute('content', canonicalUrl);
+  }, [metadata, pathname]);
 
   if (pathname === '/design-concepts') {
     return <DesignConceptsPage archive={designConcepts} />;
@@ -56,6 +105,10 @@ export function App() {
 
   if (currentCaseStudy) {
     return <CaseStudyPage caseStudy={currentCaseStudy} />;
+  }
+
+  if (pathname !== '/') {
+    return <NotFoundPage />;
   }
 
   return (

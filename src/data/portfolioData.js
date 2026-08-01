@@ -1,11 +1,9 @@
 import betboomFeaturedDesktop from '../assets/cases/betboom-featured-desktop.png';
 import betboomFeaturedMobile from '../assets/cases/betboom-featured-mobile.png';
-import catSolutionScreens from '../assets/cases/cat-solution-screens.png';
-import catTrackerScreen from '../assets/cases/cat-tracker-screen1.png';
 import iquotoDesktop from '../assets/cases/iquoto-desktop.png';
-import iquotoMobile from '../assets/cases/iquoto-mobile.png';
 import kokocMainDesktop from '../assets/cases/kokoc-main-desktop.png';
-import kokocMainMobile from '../assets/cases/kokoc-main-mobile.png';
+import petTrackerCoverScreens from '../assets/cases/pet-tracker-cover-screens.png';
+import yandexCoverScreens from '../assets/cases/yandex-cover-screens.png';
 import conceptBeauty from '../assets/concepts/beauty-commerce.png';
 import conceptEdtechTutorMarketplace from '../assets/concepts/edtech-tutor-marketplace.png';
 import conceptEyewearAr from '../assets/concepts/eyewear-ar.png';
@@ -28,9 +26,10 @@ import conceptTravelBooking from '../assets/concepts/travel-booking.png';
 import conceptTravelLanding from '../assets/concepts/travel-landing.png';
 import conceptTravelPlaces from '../assets/concepts/travel-places.png';
 import conceptStayBookingLivingRoof from '../assets/concepts/stay-booking-living-roof.png';
+import betboomBannerOverlay from '../assets/betboom-banner-overlay.png';
+import betboomBannerVideo from '../assets/betboom-banner.webm';
+import betboomCoverImage from '../assets/betboom-cover.png';
 import profilePhoto from '../assets/profile-photo.jpg';
-import yandexNewsDesktop from '../assets/cases/yandex-news-desktop.png';
-import yandexNewsMobile from '../assets/cases/yandex-news-mobile.png';
 
 export const profile = {
   name: 'Vladislava Berestova',
@@ -63,7 +62,7 @@ export const profile = {
     },
     {
       label: 'CV',
-      href: 'https://drive.google.com/file/d/1FrDWLxnVOMbm59KtxOH8Hcq17MbjjVUW/view?usp=drive_link',
+      href: '/Vladislava-Berestova-CV.pdf',
     },
   ],
   clientLine:
@@ -79,7 +78,30 @@ export const profile = {
 export const cases = [
   {
     id: 'betboom-pass',
-    focus: { zoom: 1.8, fx: '47%', fy: '63%' },
+    /*
+     * Composite cover: a still export of the interface with the banner clip
+     * played back on top. Figma's video export cannot composite video fills,
+     * so the two layers are reassembled here instead.
+     * Geometry is taken from the Figma frame (1058x967): the banner sits at
+     * x -35 / y 46 and is 1113 wide, clipped to 325 tall.
+     */
+    stage: { width: 1058, height: 967 },
+    motion: {
+      src: betboomBannerVideo,
+      left: '-3.308%',
+      top: '4.757%',
+      width: '105.198%',
+      height: '33.609%',
+      /*
+       * The banner's Fade rectangle darkens the clip so the headline stays
+       * readable. Figma exports it baked into the still, so it is rebuilt here
+       * from the original gradient stops (#121212 at 10% -> 100% alpha).
+       */
+      fade:
+        'linear-gradient(to bottom, rgba(18,18,18,0.1) 0%, rgba(18,18,18,0.1) 19.6%, rgba(18,18,18,0.413) 61.4%, rgba(18,18,18,0.696) 73%, rgba(18,18,18,0.862) 81.5%, rgba(18,18,18,1) 91.7%, rgba(18,18,18,1) 100%)',
+      // Headline, timer and reward card — sits above the fade, as in the file.
+      overlay: betboomBannerOverlay,
+    },
     title: 'BetBoom PASS',
     year: '2025–2026',
     category: 'Gamification / Core Product',
@@ -88,7 +110,7 @@ export const cases = [
     metrics: ['+60% DAU', '+75% retention'],
     surface: 'ink',
     image: {
-      src: betboomFeaturedDesktop,
+      src: betboomCoverImage,
       alt: 'BetBoom PASS interface preview',
     },
     mobileImage: {
@@ -99,7 +121,6 @@ export const cases = [
   },
   {
     id: 'yandex-news',
-    focus: { zoom: 2.2, fx: '56%', fy: '63%' },
     title: 'Yandex News Turkey',
     year: '2024',
     category: 'MVP / News Product',
@@ -108,38 +129,13 @@ export const cases = [
     metrics: ['Mobile-first', 'Concept validation'],
     surface: 'paper',
     image: {
-      src: yandexNewsDesktop,
-      alt: 'Yandex News Turkey desktop concept',
-    },
-    mobileImage: {
-      src: yandexNewsMobile,
-      alt: 'Yandex News Turkey mobile concept',
+      src: yandexCoverScreens,
+      alt: 'Three mobile screens from the Yandex News Turkey concept',
     },
     href: '/yandex-turkey',
   },
   {
-    id: 'cat-app',
-    focus: { zoom: 2.6, fx: '63%', fy: '45%' },
-    title: 'Pet Diabetes Tracker',
-    year: '2025',
-    category: 'Pet Health / Side Project',
-    description:
-      'A calm injection-tracking app concept for pets with diabetes, designed to make treatment routines easier to follow and less stressful for owners.',
-    metrics: ['Beta concept', 'Care routine UX'],
-    surface: 'pet',
-    image: {
-      src: catSolutionScreens,
-      alt: 'Pet diabetes tracker concept screens',
-    },
-    mobileImage: {
-      src: catTrackerScreen,
-      alt: 'Pet diabetes tracker mobile screen',
-    },
-    href: '/cat-app',
-  },
-  {
     id: 'kokoc-group',
-    focus: { zoom: 1.7, fx: '36%', fy: '27%' },
     title: 'Kokoc Group',
     year: '2024',
     category: 'Brand Website / Corporate',
@@ -151,15 +147,25 @@ export const cases = [
       src: kokocMainDesktop,
       alt: 'Kokoc Group desktop homepage concept',
     },
-    mobileImage: {
-      src: kokocMainMobile,
-      alt: 'Kokoc Group mobile homepage concept',
-    },
     href: '/kokoc-group',
   },
   {
+    id: 'cat-app',
+    title: 'Pet Diabetes Tracker',
+    year: '2025',
+    category: 'Pet Health / Side Project',
+    description:
+      'A calm injection-tracking app concept for pets with diabetes, designed to make treatment routines easier to follow and less stressful for owners.',
+    metrics: ['Beta concept', 'Care routine UX'],
+    surface: 'pet',
+    image: {
+      src: petTrackerCoverScreens,
+      alt: 'Three mobile screens from the Pet Injection Tracker',
+    },
+    href: '/cat-app',
+  },
+  {
     id: 'iquoto',
-    focus: { zoom: 2.2, fx: '63%', fy: '44%' },
     title: 'IQuoto',
     year: '2022–2025',
     category: 'Fintech / Registration Flow',
@@ -170,10 +176,6 @@ export const cases = [
     image: {
       src: iquotoDesktop,
       alt: 'IQuoto registration redesign screens',
-    },
-    mobileImage: {
-      src: iquotoMobile,
-      alt: 'IQuoto mobile registration redesign screens',
     },
     href: '/iquoto',
   },

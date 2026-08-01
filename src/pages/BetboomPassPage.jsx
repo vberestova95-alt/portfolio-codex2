@@ -1,4 +1,73 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
+function LazyVideo({ src, alt, className = '', playbackRate = 1 }) {
+  const videoRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const node = videoRef.current;
+
+    if (!node || typeof IntersectionObserver === 'undefined') {
+      setShouldLoad(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '600px 0px' },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const node = videoRef.current;
+
+    if (!node || !shouldLoad) {
+      return undefined;
+    }
+
+    node.muted = true;
+    node.defaultMuted = true;
+    node.playbackRate = playbackRate;
+
+    const play = () => {
+      const attempt = node.play();
+
+      if (attempt && typeof attempt.catch === 'function') {
+        attempt.catch(() => {});
+      }
+    };
+
+    if (node.readyState >= 2) {
+      play();
+    } else {
+      node.addEventListener('loadeddata', play, { once: true });
+    }
+
+    return () => node.removeEventListener('loadeddata', play);
+  }, [playbackRate, shouldLoad]);
+
+  return (
+    <video
+      ref={videoRef}
+      className={className}
+      src={shouldLoad ? src : undefined}
+      aria-label={alt}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload={shouldLoad ? 'auto' : 'none'}
+    />
+  );
+}
 
 function BeforeAfterSlider({ before, after }) {
   const [position, setPosition] = useState(50);
@@ -207,10 +276,14 @@ function BentoTile({ tile }) {
   };
 
   return (
-    <figure className={`bento-tile bento-tile--${tile.span || 'half'}`}>
+    <figure
+      className={`bento-tile bento-tile--${tile.span || 'half'}${
+        tile.variant ? ` bento-tile--${tile.variant}` : ''
+      }`}
+    >
       <div className="bento-tile__media" style={style}>
         {tile.type === 'video' ? (
-          <video src={tile.src} aria-label={tile.alt} autoPlay muted loop playsInline />
+          <LazyVideo src={tile.src} alt={tile.alt} />
         ) : (
           <img src={tile.src} alt={tile.alt} />
         )}
@@ -236,14 +309,10 @@ function BentoGrid({ part }) {
 function CaseMedia({ media, className = '' }) {
   if (media.type === 'video') {
     return (
-      <video
+      <LazyVideo
         className={className}
         src={media.src}
-        aria-label={media.alt}
-        autoPlay
-        muted
-        loop
-        playsInline
+        alt={media.alt}
       />
     );
   }
@@ -387,7 +456,9 @@ function SectionPart({ part }) {
 
   if (part.type === 'imageBand') {
     return (
-      <div className="case-image-band">
+      <div
+        className={`case-image-band${part.variant ? ` case-image-band--${part.variant}` : ''}`}
+      >
         {part.label ? <span>{part.label}</span> : null}
         <CaseMedia
           media={part.media}
@@ -433,18 +504,10 @@ function SectionPart({ part }) {
           {part.items.map((item, index) => (
             <div key={`${item.alt}-${index}`} className="case-phone-pair__item">
               {item.type === 'video' ? (
-                <video
-                  ref={(element) => {
-                    if (element) {
-                      element.playbackRate = 0.67;
-                    }
-                  }}
+                <LazyVideo
                   src={item.src}
-                  aria-label={item.alt}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
+                  alt={item.alt}
+                  playbackRate={0.67}
                 />
               ) : (
                 <img src={item.src} alt={item.alt} />

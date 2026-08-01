@@ -7,6 +7,23 @@ import { attachShotTrail } from '../lib/shotTrail.js';
 // Keep the section in code, but hidden until the copy is rewritten.
 const SHOW_ACHIEVEMENTS_SECTION = false;
 
+function ContactLink({ contact, className }) {
+  const isExternal = contact.href.startsWith('http');
+  const isCv = contact.label === 'CV';
+
+  return (
+    <a
+      className={className}
+      href={contact.href}
+      target={isExternal ? '_blank' : undefined}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      download={isCv ? 'Vladislava-Berestova-CV.pdf' : undefined}
+    >
+      {contact.label}
+    </a>
+  );
+}
+
 function SectionHeader({ label, title, description }) {
   return (
     <header className="section-header" data-reveal>
@@ -19,10 +36,67 @@ function SectionHeader({ label, title, description }) {
   );
 }
 
+/*
+ * React sets `muted` as a property after mount, which is too late for Safari's
+ * autoplay check — it sees an unmuted video on first paint and blocks playback.
+ * Setting it on the element itself, then calling play(), makes it reliable.
+ */
+function CoverMotion({ motion }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const node = ref.current;
+
+    if (!node) {
+      return;
+    }
+
+    node.muted = true;
+    node.defaultMuted = true;
+
+    const start = () => {
+      const attempt = node.play();
+
+      if (attempt && typeof attempt.catch === 'function') {
+        attempt.catch(() => {});
+      }
+    };
+
+    if (node.readyState >= 2) {
+      start();
+    } else {
+      node.addEventListener('loadeddata', start, { once: true });
+    }
+
+    return () => node.removeEventListener('loadeddata', start);
+  }, []);
+
+  return (
+    <div
+      className="cover-stage__motion"
+      aria-hidden="true"
+      style={{
+        left: motion.left,
+        top: motion.top,
+        width: motion.width,
+        height: motion.height,
+      }}
+    >
+      <video ref={ref} src={motion.src} autoPlay muted loop playsInline preload="auto" />
+      {motion.fade ? (
+        <span className="cover-stage__fade" style={{ backgroundImage: motion.fade }} />
+      ) : null}
+      {motion.overlay ? (
+        <img className="cover-stage__overlay" src={motion.overlay} alt="" />
+      ) : null}
+    </div>
+  );
+}
+
 function WorkCard({ item, index, total }) {
   return (
     <article
-      className={`work-card work-card--${item.surface}`}
+      className={`work-card work-card--${item.surface} work-card--${item.id}`}
       style={{
         '--stack-index': index,
         '--stack-total': total,
@@ -46,21 +120,31 @@ function WorkCard({ item, index, total }) {
             ))}
           </ul>
         </div>
-        <div className="work-card__visual">
-          <img
-            src={item.image.src}
-            alt={item.image.alt}
-            style={
-              item.focus
-                ? {
-                    '--zoom': item.focus.zoom,
-                    '--fx': item.focus.fx,
-                    '--fy': item.focus.fy,
-                  }
-                : undefined
-            }
-          />
-          {item.mobileImage ? (
+        <div className={`work-card__visual${item.motion ? ' work-card__visual--stage' : ''}`}>
+          {item.motion ? (
+            <div
+              className="cover-stage"
+              style={{ '--stage-w': item.stage.width, '--stage-h': item.stage.height }}
+            >
+              <img className="cover-stage__base" src={item.image.src} alt={item.image.alt} />
+              <CoverMotion motion={item.motion} />
+            </div>
+          ) : (
+            <img
+              src={item.image.src}
+              alt={item.image.alt}
+              style={
+                item.focus
+                  ? {
+                      '--zoom': item.focus.zoom,
+                      '--fx': item.focus.fx,
+                      '--fy': item.focus.fy,
+                    }
+                  : undefined
+              }
+            />
+          )}
+          {item.mobileImage && !item.motion ? (
             <div className="work-card__mobile">
               <img src={item.mobileImage.src} alt={item.mobileImage.alt} />
             </div>
@@ -126,15 +210,11 @@ export function HomePage({
             <span>{profile.name}</span>
             <div className="hero-panel__top-contacts" aria-label="Contact links">
               {profile.contacts.map((contact) => (
-                <a
+                <ContactLink
                   key={contact.label}
+                  contact={contact}
                   className="contact-link"
-                  href={contact.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {contact.label}
-                </a>
+                />
               ))}
             </div>
           </div>
@@ -269,14 +349,7 @@ export function HomePage({
 
           <div className="home-footer__links">
             {profile.contacts.map((contact) => (
-              <a
-                key={contact.label}
-                href={contact.href}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {contact.label}
-              </a>
+              <ContactLink key={contact.label} contact={contact} />
             ))}
           </div>
         </div>

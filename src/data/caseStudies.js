@@ -2,6 +2,7 @@ import redesignVideo from '../assets/redesign-cards.mp4';
 import betboomCaseHero from '../assets/betboom-case-hero.png';
 import betboomFeaturedDesktop from '../assets/cases/betboom-featured-desktop.png';
 import betboomHypothesis from '../assets/betboom-hypothesis.jpg';
+import betboomCoverImage from '../assets/betboom-cover.png';
 import betboomTopScreen from '../assets/betboom-top-screen.png';
 import iquotoCaseHero from '../assets/cases/iquoto-desktop.png';
 import iquotoAsIsVideo from '../assets/cases/iquoto-as-is.webm';
@@ -11,12 +12,12 @@ import iquotoMapToBe from '../assets/cases/iquoto-map-to-be.jpg';
 import iquotoVariants from '../assets/cases/iquoto-variants.png';
 import iquotoResult from '../assets/cases/iquoto-result.png';
 import betboomAbTestVideo from '../assets/betboom-ab-test.mp4';
-import catAppHero from '../assets/cases/cat-app-hero.svg';
 import catAppScreens from '../assets/cases/cat-app-screens.svg';
 import catWeeklyTrackerVideo from '../assets/cases/cat-weekly-tracker.mp4';
 import catTrackerScreen from '../assets/cases/cat-tracker-screen1.png';
 import catSolutionScreens from '../assets/cases/cat-solution-screens.png';
 import catConceptScreens from '../assets/cases/cat-concept-screens.png';
+import petTrackerCoverScreens from '../assets/cases/pet-tracker-cover-screens.png';
 import kokocCaseHero from '../assets/cases/kokoc-main-desktop.png';
 import kokocAbout from '../assets/cases/kokoc-about.png';
 import kokocPrototype from '../assets/cases/kokoc-prototype.png';
@@ -36,11 +37,11 @@ import yandexFeedTop from '../assets/cases/yandex-feed-top.png';
 import yandexFiltersFocus from '../assets/cases/yandex-filters-focus.png';
 import yandexPersonalization from '../assets/cases/yandex-personalization.png';
 import yandexMvpScreens from '../assets/cases/yandex-mvp-screens.png';
-import yandexNewsDesktop from '../assets/cases/yandex-news-desktop.png';
+import yandexCoverScreens from '../assets/cases/yandex-cover-screens.png';
 import yandexProcessCards from '../assets/cases/yandex-process-cards.png';
 import yandexStoryFocus from '../assets/cases/yandex-story-focus.png';
 
-const heroImage = betboomTopScreen;
+const heroImage = betboomCoverImage;
 const sportsTasksImage = betboomHypothesis;
 const hypothesisResultImage = betboomCaseHero;
 
@@ -53,8 +54,8 @@ export const catAppCaseStudy = {
       'My cat needs insulin twice a day. Missing one matters, and a notes app is a bad place to track that — so I built the thing I wanted to exist.',
     meta: 'Pet-tech concept / Side project',
     image: {
-      src: catAppHero,
-      alt: 'Concept for a pet injection tracker with a ginger cat and a mobile interface',
+      src: petTrackerCoverScreens,
+      alt: 'Three mobile screens from the Pet Injection Tracker',
     },
     stats: [
       { value: '2', label: 'happy users' },
@@ -795,8 +796,8 @@ export const yandexTurkeyCaseStudy = {
       'Turkish readers do not trust a single news source, so they check three. I designed a feed that treats that as the normal behaviour instead of working against it.',
     meta: 'Product Designer / Discovery, research, and concept',
     image: {
-      src: yandexNewsDesktop,
-      alt: 'Concept for a Yandex news product built for the Turkish audience',
+      src: yandexCoverScreens,
+      alt: 'Three mobile screens from the Yandex News product for Turkey',
     },
     stats: [
       { value: '13', label: 'research participants' },
@@ -1094,6 +1095,7 @@ export const kokocCaseStudy = {
         },
         {
           type: 'imageBand',
+          variant: 'kokoc-about',
           media: {
             type: 'image',
             src: kokocAbout,
@@ -1181,7 +1183,8 @@ export const kokocCaseStudy = {
               src: kokocVideo1,
               alt: 'Kokoc Group hero section animation',
               span: 'full',
-              zoom: 1.35,
+              variant: 'kokoc-hero-motion',
+              zoom: 0.65,
               caption: 'Hero section — the 3D and motion idea I presented first.',
             },
             {
@@ -1189,6 +1192,8 @@ export const kokocCaseStudy = {
               src: kokocVideoMenu,
               alt: 'Kokoc Group menu animation',
               span: 'half',
+              variant: 'kokoc-light-motion',
+              zoom: 1.067,
               caption: 'Navigation menu.',
             },
             {
@@ -1196,12 +1201,15 @@ export const kokocCaseStudy = {
               src: kokocVideoCards,
               alt: 'Kokoc Group card animation',
               span: 'half',
+              variant: 'kokoc-light-motion',
+              zoom: 1.067,
               caption: 'Service cards.',
             },
             {
               src: kokocConcept1,
               alt: 'Kokoc Group visual concept option one',
               span: 'wide',
+              variant: 'kokoc-light-frame',
               zoom: 1.05,
               caption: 'Visual direction one.',
             },
@@ -1209,8 +1217,9 @@ export const kokocCaseStudy = {
               src: kokocConcept2,
               alt: 'Kokoc Group visual concept option two',
               span: 'third',
+              variant: 'kokoc-light-frame',
               zoom: 1.4,
-              fx: '50%',
+              fx: '38%',
               fy: '30%',
               caption: 'Visual direction two.',
             },

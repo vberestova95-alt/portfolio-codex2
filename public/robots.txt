@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vberestova.com/sitemap.xml
