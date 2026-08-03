@@ -17,6 +17,7 @@ import {
   profile,
 } from './data/portfolioData.js';
 import { observeReveal } from './lib/reveal.js';
+import { attachReturnNavigation } from './lib/returnNavigation.js';
 import { HomePage } from './pages/HomePage.jsx';
 import { CaseStudyPage } from './pages/BetboomPassPage.jsx';
 import { DesignConceptsPage } from './pages/DesignConceptsPage.jsx';
@@ -29,6 +30,8 @@ const CASE_STUDIES_BY_PATH = {
   '/kokoc-group': kokocCaseStudy,
   '/yandex-turkey': yandexTurkeyCaseStudy,
 };
+
+const DETAIL_PATHS = new Set([...Object.keys(CASE_STUDIES_BY_PATH), '/design-concepts']);
 
 function normalizePathname(pathname) {
   const rawPath = pathname || '/';
@@ -78,6 +81,16 @@ export function App() {
   const metadata = getPageMetadata(pathname, currentCaseStudy);
 
   useEffect(() => observeReveal(), []);
+
+  useEffect(
+    () =>
+      attachReturnNavigation({
+        pathname,
+        detailPaths: DETAIL_PATHS,
+        normalizePathname,
+      }),
+    [pathname],
+  );
 
   useEffect(() => {
     if (!metadata) {
