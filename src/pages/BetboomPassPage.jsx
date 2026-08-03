@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { SiteFooter } from '../components/SiteFooter.jsx';
+import { SiteHeader } from '../components/SiteHeader.jsx';
 
 function LazyVideo({ src, alt, className = '', playbackRate = 1 }) {
   const videoRef = useRef(null);
@@ -620,7 +622,7 @@ function Lightbox({ src, alt, onClose }) {
   );
 }
 
-export function CaseStudyPage({ caseStudy, cases = [] }) {
+export function CaseStudyPage({ caseStudy, cases = [], profile }) {
   const [lightbox, setLightbox] = useState(null);
 
   const otherCases = cases.filter((item) => item.href !== `/${caseStudy.slug}`);
@@ -650,12 +652,7 @@ export function CaseStudyPage({ caseStudy, cases = [] }) {
       ) : null}
 
       <div className="case-page__shell">
-        <div className="case-topbar">
-          <a className="case-back-link" href={caseStudy.backHref}>
-            <span aria-hidden="true">←</span>
-            <span>All work</span>
-          </a>
-        </div>
+        {profile ? <SiteHeader profile={profile} /> : null}
 
         <section className="case-hero">
           <div className="case-hero__copy">
@@ -694,6 +691,8 @@ export function CaseStudyPage({ caseStudy, cases = [] }) {
 
         <NextProjects items={otherCases} />
       </div>
+
+      {profile ? <SiteFooter profile={profile} /> : null}
     </div>
   );
 }

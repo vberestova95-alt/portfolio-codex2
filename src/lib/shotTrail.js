@@ -26,8 +26,10 @@ export function attachShotTrail(container) {
 
   const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+  // Below 900px the shots are parked in the corner by CSS, so no chase there.
+  const isNarrow = window.matchMedia?.('(max-width: 900px)').matches;
 
-  if (prefersReducedMotion || isCoarsePointer) {
+  if (prefersReducedMotion || isCoarsePointer || isNarrow) {
     return undefined;
   }
 

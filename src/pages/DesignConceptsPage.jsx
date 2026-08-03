@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { SiteFooter } from '../components/SiteFooter.jsx';
+import { SiteHeader } from '../components/SiteHeader.jsx';
 
 function Lightbox({ src, alt, onClose }) {
   useEffect(() => {
@@ -40,7 +42,7 @@ function Lightbox({ src, alt, onClose }) {
   );
 }
 
-export function DesignConceptsPage({ archive }) {
+export function DesignConceptsPage({ archive, profile }) {
   const [lightbox, setLightbox] = useState(null);
   const { intro, shots } = archive;
 
@@ -57,13 +59,7 @@ export function DesignConceptsPage({ archive }) {
       ) : null}
 
       <div className="case-page__shell">
-        <div className="case-topbar">
-          <a className="case-back-link" href="/">
-            <span aria-hidden="true">←</span>
-            <span>All work</span>
-          </a>
-          <span className="case-topbar__label">Concepts</span>
-        </div>
+        {profile ? <SiteHeader profile={profile} /> : null}
 
         <section className="concept-hero">
           <p className="case-eyebrow">{intro.eyebrow}</p>
@@ -101,6 +97,8 @@ export function DesignConceptsPage({ archive }) {
           })}
         </div>
       </div>
+
+      {profile ? <SiteFooter profile={profile} /> : null}
     </div>
   );
 }

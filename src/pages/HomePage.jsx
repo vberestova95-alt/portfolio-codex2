@@ -1,28 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import knotGraphic from '../assets/editorial-knot.png';
 import orbitGraphic from '../assets/editorial-orbit.png';
+import { ContactLink } from '../components/ContactLink.jsx';
+import { SiteFooter } from '../components/SiteFooter.jsx';
 import { attachPointerObject } from '../lib/pointerObject.js';
 import { attachShotTrail } from '../lib/shotTrail.js';
 
 // Keep the section in code, but hidden until the copy is rewritten.
 const SHOW_ACHIEVEMENTS_SECTION = false;
-
-function ContactLink({ contact, className }) {
-  const isExternal = contact.href.startsWith('http');
-  const isCv = contact.label === 'CV';
-
-  return (
-    <a
-      className={className}
-      href={contact.href}
-      target={isExternal ? '_blank' : undefined}
-      rel={isExternal ? 'noopener noreferrer' : undefined}
-      download={isCv ? 'Vladislava-Berestova-CV.pdf' : undefined}
-    >
-      {contact.label}
-    </a>
-  );
-}
 
 function SectionHeader({ label, title, description }) {
   return (
@@ -329,31 +314,7 @@ export function HomePage({
         </div>
       </section>
 
-      <footer className="home-footer">
-        <div className="home-shell home-footer__panel">
-          <img
-            className="home-footer__graphic"
-            src={knotGraphic}
-            alt=""
-            aria-hidden="true"
-          />
-
-          <div className="home-footer__intro">
-            <h2>{profile.availability.title}</h2>
-            {profile.availability.paragraphs.map((paragraph) => (
-              <p key={paragraph} className="home-footer__lead">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-
-          <div className="home-footer__links">
-            {profile.contacts.map((contact) => (
-              <ContactLink key={contact.label} contact={contact} />
-            ))}
-          </div>
-        </div>
-      </footer>
+      <SiteFooter profile={profile} />
     </div>
   );
 }

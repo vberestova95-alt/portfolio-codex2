@@ -1069,30 +1069,81 @@ button {
   max-width: 12ch;
 }
 
+.editorial-card--practice {
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(420px, 52vw, 560px);
+}
+
 .editorial-card--practice .editorial-card__title {
   margin-top: 17px;
 }
 
+.editorial-card--practice .editorial-card__copy {
+  max-width: 44ch;
+  /* Definite gap under the copy — the tools' own padding collapses away when
+     the card is exactly content-height. */
+  margin-bottom: clamp(26px, 3vw, 44px);
+}
+
 .editorial-card__graphic {
   position: absolute;
-  right: -12%;
-  bottom: -21%;
-  width: min(96%, 660px);
+  right: -5%;
+  bottom: -7%;
+  width: min(58%, 400px);
   opacity: 0.95;
   filter: drop-shadow(0 30px 50px rgba(4, 10, 40, 0.4));
   animation: hero-object-float 22s ease-in-out infinite;
 }
 
+/* Single-column but wide: the artwork keeps scaling with the card. */
+@media (max-width: 1240px) and (min-width: 901px) {
+  .editorial-card__graphic {
+    width: min(62%, clamp(420px, 42vw, 520px));
+  }
+
+  /* Tighter cap so the last line clears the artwork at the low end of the range. */
+  .editorial-card--practice .editorial-card__copy {
+    max-width: 40ch;
+  }
+}
+
+/*
+ * Two-column desktop: the card is tall and the copy is capped at 44ch, so the
+ * illustration goes back to its original full size. Narrower layouts keep the
+ * smaller version above, where the card turns landscape and space is tight.
+ */
+@media (min-width: 1241px) {
+  /* Pushed into the corner so the ring's metal starts to the right of the tag
+     row — it stays large, the tags keep the floor. */
+  .editorial-card__graphic {
+    right: -26%;
+    bottom: -22%;
+    width: min(92%, 640px);
+  }
+
+  /*
+   * The tags sit on the card floor, as they do on the concept card next to it.
+   * A guard column keeps them out of the artwork's dense middle — they wrap
+   * inside the left half instead of running under it.
+   */
+  .editorial-card--practice .editorial-card__tools {
+    padding-right: min(44%, 280px);
+  }
+}
+
+/*
+ * In flow rather than absolute: the list now sets the card's floor, so it can
+ * never be overlapped by the copy above it however narrow the column gets.
+ */
 .editorial-card__tools {
-  position: absolute;
-  left: clamp(28px, 2.6vw, 44px);
-  bottom: clamp(28px, 2.6vw, 44px);
+  position: relative;
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
   gap: 7px 10px;
-  margin: 0;
-  padding: 0;
+  margin: auto 0 0;
+  padding: clamp(28px, 3vw, 52px) 0 0;
   list-style: none;
   color: rgba(247, 248, 252, 0.76);
   font-size: 12px;
@@ -1241,6 +1292,15 @@ ol.case-bullet-list li::before {
   padding: 0 0 clamp(28px, 3vw, 48px);
 }
 
+/*
+ * On the home page the air above the footer comes from the last section's own
+ * bottom padding. Internal pages end on a block that has none, so the footer
+ * supplies the same gap itself.
+ */
+.case-page > .home-footer {
+  padding-top: var(--gap-section);
+}
+
 .home-footer__panel {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1292,16 +1352,88 @@ ol.case-bullet-list li::before {
   justify-self: end;
 }
 
+/*
+ * Between 901 and 1240px the panel used to stack, which dropped the contact
+ * pills to the bottom-right — straight onto the knot. Keeping the second
+ * column parks them in the top-right corner instead, and the panel holds a
+ * minimum height so the artwork isn't cropped to a sliver.
+ */
+@media (max-width: 1240px) and (min-width: 901px) {
+  .home-footer__panel {
+    align-items: start;
+    min-height: clamp(300px, 30vw, 360px);
+  }
+}
+
+/* Too narrow for two columns: the pills sit under the copy, above the knot. */
+@media (max-width: 900px) {
+  .home-footer__panel {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .home-footer__links {
+    justify-self: start;
+    margin-top: 4px;
+  }
+}
+
+/* Tablets: the stacked panel is short and wide, so the knot is pulled up out
+   of the crop. Phones keep the original placement, which already worked. */
+@media (max-width: 900px) and (min-width: 641px) {
+  .home-footer__graphic {
+    right: -10%;
+    bottom: -24%;
+    width: min(56vw, 380px);
+  }
+}
+
 .case-page {
   padding: 24px 0 48px;
 }
 
-.case-topbar {
+/*
+ * Internal-page header. Static on purpose — it scrolls away with the page
+ * instead of following it. The name is the way home.
+ */
+.site-topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding-bottom: 16px;
+  padding: 4px 0 clamp(16px, 1.6vw, 24px);
+}
+
+.site-topbar__brand {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  transition: color 160ms ease;
+}
+
+.site-topbar__brand:hover {
+  color: var(--ink);
+}
+
+.site-topbar__contacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* The pills live on a light page here, so they take the ink border. */
+.site-topbar .contact-link {
+  border-color: var(--line);
+  color: var(--ink-soft);
+}
+
+.site-topbar .contact-link:hover {
+  border-color: rgba(13, 17, 23, 0.28);
+  background: rgba(13, 17, 23, 0.05);
+  color: var(--ink);
 }
 
 .case-back-link {
@@ -2054,8 +2186,7 @@ ol.case-bullet-list li::before {
   .two-column-section,
   .case-hero,
   .case-study-section,
-  .experience-row,
-  .home-footer__panel {
+  .experience-row {
     grid-template-columns: 1fr;
   }
 
@@ -2160,12 +2291,13 @@ ol.case-bullet-list li::before {
   }
 
   .hero-panel__top,
-  .case-topbar {
+  .site-topbar {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .hero-panel__top-contacts {
+  .hero-panel__top-contacts,
+  .site-topbar__contacts {
     justify-content: flex-start;
   }
 
@@ -2192,11 +2324,6 @@ ol.case-bullet-list li::before {
   .hero-panel__object {
     width: min(72%, 260px);
     margin-right: -8px;
-  }
-
-  .editorial-card__tools {
-    left: 20px;
-    bottom: 20px;
   }
 
   .work-card h3,
@@ -2575,9 +2702,29 @@ ol.case-bullet-list li::before {
   color: var(--ink);
 }
 
+/*
+ * Single-column layout: the card turns landscape, so the shots get bigger to
+ * keep the same visual weight they have in the two-column desktop view.
+ */
+@media (max-width: 1240px) and (min-width: 901px) {
+  .concept-shot {
+    width: clamp(180px, 20vw, 268px);
+  }
+}
+
+/*
+ * At 900px and below the chase is off (see shotTrail.js) and the cluster is
+ * parked in the bottom-right corner. The card reserves room for it with
+ * padding, so the copy can never run underneath.
+ */
 @media (max-width: 900px) {
   .concept-teaser {
-    min-height: 520px;
+    min-height: 0;
+    padding-bottom: clamp(196px, 44vw, 268px);
+  }
+
+  .concept-teaser__shots::after {
+    display: none;
   }
 
   .concept-grid {
@@ -2587,14 +2734,94 @@ ol.case-bullet-list li::before {
   .concept-card--wide {
     grid-column: span 1;
   }
-}
 
-@media (max-width: 640px) {
-  .concept-teaser {
-    min-height: 460px;
+  .concept-teaser:not(.is-trailing) .concept-shot,
+  .concept-teaser.is-trailing .concept-shot {
+    top: auto;
+    left: auto;
+    width: clamp(116px, 31vw, 168px);
+    transform: rotate(var(--shot-rotate, 0deg));
   }
 
-  .concept-shot {
-    width: clamp(120px, 40vw, 170px);
+  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(1),
+  .concept-teaser.is-trailing .concept-shot:nth-child(1) {
+    right: clamp(74px, 20vw, 108px);
+    bottom: clamp(62px, 16vw, 88px);
+    --shot-rotate: -7deg;
+  }
+
+  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(2),
+  .concept-teaser.is-trailing .concept-shot:nth-child(2) {
+    right: clamp(48px, 13vw, 72px);
+    bottom: clamp(40px, 11vw, 60px);
+    --shot-rotate: 5deg;
+  }
+
+  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(3),
+  .concept-teaser.is-trailing .concept-shot:nth-child(3) {
+    right: clamp(24px, 7vw, 38px);
+    bottom: clamp(20px, 6vw, 32px);
+    --shot-rotate: -3deg;
+  }
+
+  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(4),
+  .concept-teaser.is-trailing .concept-shot:nth-child(4) {
+    right: 0;
+    bottom: 0;
+    --shot-rotate: 4deg;
+  }
+
+  /*
+   * Single-column layout: the card keeps a real height so the tools land on its
+   * floor rather than floating in the middle of the panel, and the illustration
+   * takes the right half of that floor at close to its desktop scale.
+   */
+  .editorial-card--practice {
+    min-height: clamp(430px, 70vw, 640px);
+  }
+
+  /* The copy keeps the left column so its lines stop before the artwork. */
+  .editorial-card--practice .editorial-card__copy {
+    max-width: 58%;
+  }
+
+  .editorial-card--practice .editorial-card__tools {
+    /* Guard column for the artwork — the tags stop before it starts. */
+    padding-right: min(48%, 300px);
+  }
+
+  /* Grows with the viewport, so the landscape card doesn't end up with a small
+     illustration floating in a large empty corner. */
+  .editorial-card__graphic {
+    right: -8%;
+    bottom: -8%;
+    width: min(62%, clamp(340px, 47vw, 430px));
+  }
+}
+
+/*
+ * Phones: the tags need the full width for one line, so the artwork moves into
+ * a reserved band underneath them instead of sharing the floor.
+ */
+@media (max-width: 640px) {
+  .editorial-card--practice {
+    min-height: 0;
+    padding-bottom: clamp(186px, 56vw, 250px);
+  }
+
+  .editorial-card--practice .editorial-card__copy {
+    max-width: none;
+  }
+
+  .editorial-card--practice .editorial-card__tools {
+    padding-right: 0;
+  }
+
+  /* Offsets in pixels, not percentages: the card runs very tall on phones, so a
+     percentage bleed would slice the artwork in half. */
+  .editorial-card__graphic {
+    right: -14px;
+    bottom: -18px;
+    width: min(74%, 300px);
   }
 }

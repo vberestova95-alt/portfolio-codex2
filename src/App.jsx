@@ -113,11 +113,11 @@ export function App() {
   }, [metadata, pathname]);
 
   if (pathname === '/design-concepts') {
-    return <DesignConceptsPage archive={designConcepts} />;
+    return <DesignConceptsPage archive={designConcepts} profile={profile} />;
   }
 
   if (currentCaseStudy) {
-    return <CaseStudyPage caseStudy={currentCaseStudy} cases={cases} />;
+    return <CaseStudyPage caseStudy={currentCaseStudy} cases={cases} profile={profile} />;
   }
 
   if (pathname !== '/') {

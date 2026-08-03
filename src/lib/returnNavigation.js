@@ -202,7 +202,7 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
 
     if (
       detailPaths.has(pathname) &&
-      anchor.classList.contains('case-back-link') &&
+      (anchor.classList.contains('case-back-link') || anchor.hasAttribute('data-return-home')) &&
       returnEntry?.destinationPath === pathname
     ) {
       event.preventDefault();
