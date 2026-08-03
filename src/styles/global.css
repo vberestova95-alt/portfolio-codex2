@@ -630,13 +630,19 @@ button {
   transition: transform 340ms cubic-bezier(0.22, 0.8, 0.24, 1);
 }
 
-.work-card--ink {
+/*
+ * Surfaces are shared with the "other projects" thumbnails at the foot of each
+ * case, so a project keeps the same colour wherever its cover appears.
+ */
+.work-card--ink,
+.case-next__card--ink .case-next__media {
   background: #090d14;
   color: var(--inverse);
   border-color: rgba(247, 248, 252, 0.12);
 }
 
-.work-card--paper {
+.work-card--paper,
+.case-next__card--paper .case-next__media {
   background:
     radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.58), transparent 30%),
     linear-gradient(135deg, #faf9f2 0%, #f5f1df 52%, #eee6c8 100%);
@@ -649,7 +655,8 @@ button {
   border-color: rgba(247, 248, 252, 0.14);
 }
 
-.work-card--mint {
+.work-card--mint,
+.case-next__card--mint .case-next__media {
   background:
     radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.74), transparent 24%),
     radial-gradient(circle at 82% 16%, rgba(220, 255, 239, 0.54), transparent 30%),
@@ -658,7 +665,8 @@ button {
   border-color: rgba(17, 33, 24, 0.1);
 }
 
-.work-card--pet {
+.work-card--pet,
+.case-next__card--pet .case-next__media {
   background:
     radial-gradient(circle at 15% 16%, rgba(255, 255, 255, 0.48), transparent 26%),
     radial-gradient(circle at 82% 14%, rgba(237, 240, 243, 0.42), transparent 32%),
@@ -667,7 +675,8 @@ button {
   border-color: transparent;
 }
 
-.work-card--graphite {
+.work-card--graphite,
+.case-next__card--graphite .case-next__media {
   background: #121720;
   color: var(--inverse);
   border-color: rgba(247, 248, 252, 0.12);
@@ -2196,6 +2205,130 @@ ol.case-bullet-list li::before {
   .home-footer__panel h2,
   .case-study-section__intro h2 {
     letter-spacing: -0.04em;
+  }
+}
+
+/* ----------------------------------------------------------- other projects */
+
+.case-next {
+  margin-top: clamp(48px, 6vw, 96px);
+  padding-top: var(--gap-section);
+  border-top: 1px solid var(--line);
+}
+
+.case-next__header {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  padding-bottom: clamp(26px, 2.8vw, 44px);
+}
+
+.case-next__header h2 {
+  margin: 0;
+  font-size: clamp(34px, 4vw, 60px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.case-next__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(16px, 1.6vw, 26px);
+}
+
+.case-next__card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: inherit;
+}
+
+.case-next__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  background: var(--paper);
+}
+
+.case-next__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 700ms cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+.case-next__card:hover .case-next__media img {
+  transform: scale(1.03);
+}
+
+/* Covers that are cut-out screens rather than full-bleed interfaces: they sit
+   on the surface instead of filling it, matching the home cards. */
+.case-next__card[data-case='yandex-news'] .case-next__media img,
+.case-next__card[data-case='cat-app'] .case-next__media img {
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+/* Whole composition on the graphite surface — cropping it only cuts the
+   desktop card in half at thumbnail size. */
+.case-next__card[data-case='iquoto'] .case-next__media img {
+  object-fit: contain;
+  object-position: center center;
+}
+
+.case-next__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.case-next__category {
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+}
+
+.case-next__title {
+  font-size: 20px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.case-next__cta {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  transition: color 200ms ease;
+}
+
+.case-next__card:hover .case-next__cta {
+  color: var(--ink);
+}
+
+@media (max-width: 1240px) {
+  .case-next__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .case-next__header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 520px) {
+  .case-next__grid {
+    grid-template-columns: 1fr;
   }
 }
 

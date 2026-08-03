@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { SiteFooter } from '../components/SiteFooter.jsx';
+import { SiteHeader } from '../components/SiteHeader.jsx';
 
 function LazyVideo({ src, alt, className = '', playbackRate = 1 }) {
   const videoRef = useRef(null);
@@ -537,6 +539,49 @@ function SectionPart({ part }) {
   return null;
 }
 
+/*
+ * Closing block of every case: the rest of the work, so the case is a loop
+ * rather than a dead end. Cards reuse the home covers and surfaces, keyed by
+ * case id for the per-project image fitting.
+ */
+function NextProjects({ items }) {
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <section className="case-next" data-reveal>
+      <header className="case-next__header">
+        <p className="section-label">More work</p>
+        <h2>Other projects</h2>
+      </header>
+
+      <div className="case-next__grid">
+        {items.map((item) => (
+          <a
+            key={item.id}
+            className={`case-next__card case-next__card--${item.surface}`}
+            data-case={item.id}
+            href={item.href}
+          >
+            <span className="case-next__media">
+              <img src={item.image.src} alt="" loading="lazy" />
+            </span>
+            <span className="case-next__meta">
+              <span className="case-next__category">{item.category}</span>
+              <span className="case-next__title">{item.title}</span>
+              <span className="case-next__cta">
+                Open case
+                <span aria-hidden="true"> →</span>
+              </span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Lightbox({ src, alt, onClose }) {
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -577,11 +622,18 @@ function Lightbox({ src, alt, onClose }) {
   );
 }
 
-export function CaseStudyPage({ caseStudy }) {
+export function CaseStudyPage({ caseStudy, cases = [], profile }) {
   const [lightbox, setLightbox] = useState(null);
 
+  const otherCases = cases.filter((item) => item.href !== `/${caseStudy.slug}`);
+
   const handleImageClick = useCallback((event) => {
-    if (event.target.tagName === 'IMG' && !event.target.closest('.case-ba-slider')) {
+    // Covers in the closing block are links, not zoomable case media.
+    if (
+      event.target.tagName === 'IMG' &&
+      !event.target.closest('.case-ba-slider') &&
+      !event.target.closest('.case-next')
+    ) {
       setLightbox({
         src: event.target.src,
         alt: event.target.alt,
@@ -600,12 +652,7 @@ export function CaseStudyPage({ caseStudy }) {
       ) : null}
 
       <div className="case-page__shell">
-        <div className="case-topbar">
-          <a className="case-back-link" href={caseStudy.backHref}>
-            <span aria-hidden="true">←</span>
-            <span>All work</span>
-          </a>
-        </div>
+        {profile ? <SiteHeader profile={profile} /> : null}
 
         <section className="case-hero">
           <div className="case-hero__copy">
@@ -641,7 +688,11 @@ export function CaseStudyPage({ caseStudy }) {
             </section>
           ))}
         </div>
+
+        <NextProjects items={otherCases} />
       </div>
+
+      {profile ? <SiteFooter profile={profile} /> : null}
     </div>
   );
 }

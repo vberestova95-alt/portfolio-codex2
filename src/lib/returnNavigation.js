@@ -41,6 +41,11 @@ function saveReturnEntry(entry) {
   writeEntries(entries);
 }
 
+function updateReturnEntry(entry) {
+  const entries = readEntries().map((stored) => (stored.id === entry.id ? entry : stored));
+  writeEntries(entries);
+}
+
 function findEntryById(id) {
   return id ? readEntries().find((entry) => entry.id === id) || null : null;
 }
@@ -202,6 +207,29 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
     ) {
       event.preventDefault();
       window.history.back();
+      return;
+    }
+
+    if (
+      detailPaths.has(pathname) &&
+      detailPaths.has(destinationPath) &&
+      destinationPath !== pathname &&
+      returnEntry?.sourcePath === '/'
+    ) {
+      event.preventDefault();
+      const updatedEntry = {
+        ...returnEntry,
+        destinationPath,
+        anchorOffsetY: Math.max(
+          24,
+          Math.min(returnEntry.anchorOffsetY || 120, window.innerHeight * 0.24),
+        ),
+        createdAt: Date.now(),
+      };
+
+      updateReturnEntry(updatedEntry);
+      window.sessionStorage.setItem(PENDING_KEY, updatedEntry.id);
+      window.location.replace(destinationUrl.href);
       return;
     }
 

@@ -117,7 +117,7 @@ export function App() {
   }
 
   if (currentCaseStudy) {
-    return <CaseStudyPage caseStudy={currentCaseStudy} />;
+    return <CaseStudyPage caseStudy={currentCaseStudy} cases={cases} />;
   }
 
   if (pathname !== '/') {
