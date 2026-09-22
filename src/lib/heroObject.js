@@ -1,5 +1,5 @@
 /*
- * Hero object motion.
+ * Hero object motion. Ambient only — nothing here reacts to the pointer.
  *
  * The object drifts on its own: two sine waves per axis on unrelated periods, so
  * their sum wanders instead of tracing the same ellipse and the object appears
@@ -12,50 +12,26 @@
  * rides the same drift phases as the travel, one quarter-cycle offset, so the
  * turn leads the movement the way a floating object would.
  *
- * The pointer does two things, both driven off the same distance reading:
- *
- *   - it pushes the object away along the line between them, and the object
- *     drifts back once the cursor leaves;
- *   - it leans the object toward the cursor, on top of the ambient tilt;
- *   - if the object is a video clip, it spins it. The clip only runs while the
- *     cursor is near, and its playback rate is eased rather than switched, so
- *     the spin winds up and coasts down instead of cutting in and out. Stopping
- *     is a `pause()` on the current frame and never a seek, so coming back
- *     resumes from exactly where it stopped.
- *
- * With a still image the clip half is simply inert.
+ * A clip in the slot instead of a still simply plays while it is on screen.
  */
 
 /*
  * Horizontal travel is the tighter budget: the copy sits to the object's left,
- * and drift plus a full push is the closest the two ever get. These add up to
- * about 73px of leftward reach, which keeps it clear of the longest line.
+ * so the leftward reach has to stay clear of the longest line.
  */
 const DRIFT_X = 20; // px of horizontal wander
 const DRIFT_Y = 32; // px of vertical wander
 const SCROLL_DRIFT = 40; // px the object trails the page by across the hero
 
-const PUSH_RADIUS = 340; // px — how close the pointer gets before it pushes
-const PUSH_STRENGTH = 44; // px of displacement at the closest approach
-
 /*
  * Tilt kept deliberately shallow. Past about 9deg the flat edges of the render
  * start to give the plane away, which is the thing this is here to avoid.
  */
-const TILT_X = 6.5; // deg of ambient tilt about the horizontal axis
+const TILT_X = 6.5; // deg of tilt about the horizontal axis
 const TILT_Y = 7.5; // deg about the vertical axis
-const TILT_POINTER = 4; // deg of extra lean toward the cursor
 const PERSPECTIVE = 1400; // px — long, so the tilt stays a turn and not a fisheye
 
 const EASING = 0.05; // low, so the object feels heavy and settles slowly
-
-/*
- * Spin-up and spin-down. Browsers clamp very low playback rates, so anything
- * under STOP_RATE counts as stopped and the clip is paused outright rather than
- * left crawling. At this easing the wind-up and the coast each take ~0.6s.
- */
-const SPIN_EASING = 0.06;
-const STOP_RATE = 0.1;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
@@ -69,21 +45,13 @@ export function attachHeroObject(container, target) {
   }
 
   const clip = target.tagName === 'VIDEO' ? target : null;
-  const usePointer = !window.matchMedia?.('(pointer: coarse)').matches;
 
   const current = { x: 0, y: 0, tiltX: 0, tiltY: 0 };
-  const push = { x: 0, y: 0 };
-  const lean = { x: 0, y: 0 };
   let scrollOffset = 0;
   let frame = null;
   let visible = true;
   let elapsed = 0;
   let last = null;
-
-  // Without a hover to read, a touch device just lets the clip run while it is
-  // on screen; otherwise the object would sit frozen for the whole visit.
-  let spinTarget = clip && !usePointer ? 1 : 0;
-  let spinRate = 0;
 
   if (clip) {
     /*
@@ -99,25 +67,6 @@ export function attachHeroObject(container, target) {
 
     if (attempt && typeof attempt.catch === 'function') {
       attempt.catch(() => {});
-    }
-  };
-
-  const driveClip = () => {
-    spinRate += (spinTarget - spinRate) * SPIN_EASING;
-
-    if (spinTarget > 0 || spinRate > STOP_RATE) {
-      if (clip.paused && visible) {
-        playClip();
-      }
-
-      clip.playbackRate = Math.max(spinRate, STOP_RATE);
-      return;
-    }
-
-    spinRate = 0;
-
-    if (!clip.paused) {
-      clip.pause();
     }
   };
 
@@ -137,16 +86,11 @@ export function attachHeroObject(container, target) {
      * and rotateX off the vertical, which is the direction a solid would tip if
      * it were actually moving that way.
      */
-    const ambientTiltY = Math.sin(t * 0.21 + Math.PI / 2) * TILT_Y;
-    const ambientTiltX = Math.cos(t * 0.17 + Math.PI / 2) * TILT_X;
+    const wantedTiltY = Math.sin(t * 0.21 + Math.PI / 2) * TILT_Y;
+    const wantedTiltX = Math.cos(t * 0.17 + Math.PI / 2) * TILT_X;
 
-    const wantedX = driftX + push.x;
-    const wantedY = driftY + push.y + scrollOffset;
-    const wantedTiltY = ambientTiltY + lean.x * TILT_POINTER;
-    const wantedTiltX = ambientTiltX + lean.y * TILT_POINTER;
-
-    current.x += (wantedX - current.x) * EASING;
-    current.y += (wantedY - current.y) * EASING;
+    current.x += (driftX - current.x) * EASING;
+    current.y += (driftY + scrollOffset - current.y) * EASING;
     current.tiltX += (wantedTiltX - current.tiltX) * EASING;
     current.tiltY += (wantedTiltY - current.tiltY) * EASING;
 
@@ -154,10 +98,6 @@ export function attachHeroObject(container, target) {
       `perspective(${PERSPECTIVE}px) ` +
       `translate3d(${current.x.toFixed(2)}px, ${current.y.toFixed(2)}px, 0) ` +
       `rotateX(${current.tiltX.toFixed(2)}deg) rotateY(${current.tiltY.toFixed(2)}deg)`;
-
-    if (clip) {
-      driveClip();
-    }
 
     frame = requestAnimationFrame(render);
   };
@@ -174,51 +114,6 @@ export function attachHeroObject(container, target) {
       cancelAnimationFrame(frame);
       frame = null;
     }
-  };
-
-  const handlePointerMove = (event) => {
-    const box = target.getBoundingClientRect();
-    const dx = box.left + box.width / 2 - event.clientX;
-    const dy = box.top + box.height / 2 - event.clientY;
-    const distance = Math.hypot(dx, dy);
-
-    if (distance > PUSH_RADIUS) {
-      push.x = 0;
-      push.y = 0;
-      lean.x = 0;
-      lean.y = 0;
-      spinTarget = 0;
-      return;
-    }
-
-    spinTarget = 1;
-
-    /*
-     * The lean is signed and normalised rather than a magnitude: it says which
-     * side the cursor is on, so the object turns its face toward the cursor
-     * while the push sends its body the other way.
-     */
-    lean.x = clamp(-dx / PUSH_RADIUS, -1, 1);
-    lean.y = clamp(dy / PUSH_RADIUS, -1, 1);
-
-    if (distance < 1) {
-      // Dead centre: the push direction is undefined, so hold the last one
-      // rather than snapping the object back through the cursor.
-      return;
-    }
-
-    // Strongest right under the cursor, fading to nothing at the radius.
-    const force = (1 - distance / PUSH_RADIUS) * PUSH_STRENGTH;
-    push.x = (dx / distance) * force;
-    push.y = (dy / distance) * force;
-  };
-
-  const handlePointerLeave = () => {
-    push.x = 0;
-    push.y = 0;
-    lean.x = 0;
-    lean.y = 0;
-    spinTarget = 0;
   };
 
   const handleScroll = () => {
@@ -243,6 +138,10 @@ export function attachHeroObject(container, target) {
 
       if (visible) {
         startLoop();
+
+        if (clip && clip.paused) {
+          playClip();
+        }
       } else {
         stopLoop();
 
@@ -256,11 +155,6 @@ export function attachHeroObject(container, target) {
 
   observer.observe(container);
 
-  if (usePointer) {
-    container.addEventListener('pointermove', handlePointerMove);
-    container.addEventListener('pointerleave', handlePointerLeave);
-  }
-
   window.addEventListener('scroll', handleScroll, { passive: true });
   window.addEventListener('resize', handleScroll);
   document.addEventListener('visibilitychange', handleVisibility);
@@ -268,14 +162,12 @@ export function attachHeroObject(container, target) {
   handleScroll();
   startLoop();
 
+  if (clip) {
+    playClip();
+  }
+
   return () => {
     observer.disconnect();
-
-    if (usePointer) {
-      container.removeEventListener('pointermove', handlePointerMove);
-      container.removeEventListener('pointerleave', handlePointerLeave);
-    }
-
     window.removeEventListener('scroll', handleScroll);
     window.removeEventListener('resize', handleScroll);
     document.removeEventListener('visibilitychange', handleVisibility);

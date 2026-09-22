@@ -420,7 +420,12 @@ button {
   animation: hero-glow-secondary 14s ease-in-out infinite alternate;
 }
 
-/* Either a still or a clip fills the slot — the motion code drives whichever. */
+/*
+ * Either a still or a clip fills the slot — the motion code drives whichever,
+ * and the `video` selector stays so swapping a clip back in needs no CSS.
+ * `backface-visibility` matters now that the object tilts in perspective: at
+ * the far end of the swing the render would otherwise flash its reverse face.
+ */
 .hero-panel__object img,
 .hero-panel__object video {
   position: absolute;
@@ -430,6 +435,7 @@ button {
   max-width: none;
   object-fit: contain;
   transform-origin: 50% 50%;
+  backface-visibility: hidden;
   will-change: transform;
   filter: drop-shadow(0 34px 60px rgba(6, 12, 46, 0.45));
 }
@@ -2454,18 +2460,43 @@ ol.case-bullet-list li::before {
   border-radius: var(--r-card);
 }
 
-/* Reveal on scroll. Only armed when JS sets .has-reveal on <html>. */
+/*
+ * Reveal on scroll. Only armed when JS sets .has-reveal on <html>.
+ *
+ * The rise scales with the block: a flat 20px was imperceptible under a
+ * 1000px card and about right under a section heading, so the same number
+ * read as two different gestures. `--reveal-rise` is set per block type below.
+ *
+ * Opacity resolves in about two thirds of the travel, so the element is solid
+ * before it stops moving. Run the two over the same duration and it drifts the
+ * last stretch while still translucent, which is what reads as "it faded, then
+ * a card appeared".
+ */
 .has-reveal [data-reveal] {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(var(--reveal-rise, 20px));
 }
 
 .has-reveal [data-reveal].is-revealed {
   opacity: 1;
   transform: none;
   transition:
-    opacity 640ms cubic-bezier(0.22, 0.8, 0.24, 1),
-    transform 640ms cubic-bezier(0.22, 0.8, 0.24, 1);
+    opacity 420ms cubic-bezier(0.33, 1, 0.68, 1) var(--reveal-delay, 0ms),
+    transform 680ms cubic-bezier(0.22, 0.8, 0.24, 1) var(--reveal-delay, 0ms);
+}
+
+/* Big surfaces travel further, so the movement is legible at their scale. */
+.has-reveal .editorial-card[data-reveal],
+.has-reveal .case-next[data-reveal],
+.has-reveal .case-study-section[data-reveal] {
+  --reveal-rise: 44px;
+}
+
+/* Rows and grid cells: shorter, because they arrive staggered as a set. */
+.has-reveal .experience-row[data-reveal],
+.has-reveal .achievement-card[data-reveal],
+.has-reveal .concept-card[data-reveal] {
+  --reveal-rise: 28px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2476,8 +2507,7 @@ ol.case-bullet-list li::before {
 
   .hero-panel::before,
   .hero-panel__object::before,
-  .hero-panel__object img,
-  .hero-panel__object video {
+  .hero-panel__object img {
     animation: none;
   }
 }
@@ -2549,11 +2579,12 @@ ol.case-bullet-list li::before {
    * floating whole inside it.
    *
    * The negative margin is a share of the object's own width — percentages in
-   * margins resolve against the container width, the same basis the width uses,
-   * and the aspect ratio is ~1:1, so it stands in for a share of the height.
-   * The panel's own bottom padding comes off too, since it is laid out below
-   * the object and would otherwise hand a third of the crop straight back.
-   * The panel loses that height along with it.
+   * margins resolve against the container width, the same basis the width uses.
+   * The factor is a third scaled by the slot's 1141/1190 ratio, so a third of
+   * the *height* is what actually goes under the edge. The panel's own bottom
+   * padding comes off too, since it is laid out below the object and would
+   * otherwise hand part of the crop straight back. The panel loses that height
+   * along with it.
    */
   .hero-panel__object {
     --object-size: min(56%, 320px);
@@ -2563,7 +2594,7 @@ ol.case-bullet-list li::before {
     right: auto;
     transform: none;
     width: var(--object-size);
-    margin: 8px 0 calc(var(--object-size) * -0.335 - var(--hero-pad-bottom)) auto;
+    margin: 8px 0 calc(var(--object-size) * -0.32 - var(--hero-pad-bottom)) auto;
   }
 
   .section-header {
