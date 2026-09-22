@@ -20,6 +20,7 @@ function readEntries() {
         typeof entry.sourcePath === 'string' &&
         typeof entry.destinationPath === 'string' &&
         typeof entry.scrollY === 'number' &&
+        typeof entry.createdAt === 'number' &&
         entry.createdAt >= cutoff,
     );
   } catch {
@@ -97,19 +98,44 @@ function findDestinationAnchor(destinationPath, normalizePathname) {
   });
 }
 
-function restorePosition(entry, normalizePathname) {
-  const anchor = findDestinationAnchor(entry.destinationPath, normalizePathname);
-  let top = entry.scrollY;
+/*
+ * Distance from the top of the document to an element's own place in the flow.
+ *
+ * getBoundingClientRect() alone is not enough here: the work cards are
+ * `position: sticky`, so once one is pinned its rect reports the pin offset
+ * rather than where the card actually lives. Measuring off that produced a
+ * target that moved every time we scrolled to it — which is exactly the
+ * jumping back and forth this file used to cause on return. Taking the sticky
+ * out for the length of one measurement gives a value that does not drift.
+ */
+function getDocumentTop(element) {
+  const previousPosition = element.style.position;
+  element.style.position = 'static';
+  const top = window.scrollY + element.getBoundingClientRect().top;
+  element.style.position = previousPosition;
+  return top;
+}
 
-  if (anchor && typeof entry.anchorOffsetY === 'number') {
-    const container = getAnchorContainer(anchor);
-    top = window.scrollY + container.getBoundingClientRect().top - entry.anchorOffsetY;
+/*
+ * The target is rebuilt from the destination card rather than replayed as a raw
+ * offset, so content that reflows above it (a late image, a font swap) moves
+ * the target with it instead of shifting the page under the reader.
+ */
+function resolveTarget(entry, normalizePathname) {
+  const anchor = findDestinationAnchor(entry.destinationPath, normalizePathname);
+
+  if (anchor && typeof entry.anchorDelta === 'number') {
+    return Math.max(0, getDocumentTop(getAnchorContainer(anchor)) + entry.anchorDelta);
   }
 
+  return Math.max(0, entry.scrollY);
+}
+
+function scrollToTarget(entry, top) {
   const root = document.documentElement;
   const previousScrollBehavior = root.style.scrollBehavior;
   root.style.scrollBehavior = 'auto';
-  window.scrollTo(entry.scrollX || 0, Math.max(0, top));
+  window.scrollTo(entry.scrollX || 0, top);
   root.style.scrollBehavior = previousScrollBehavior;
 }
 
@@ -135,10 +161,27 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
 
   connectPendingEntry(pathname);
 
-  const timeoutIds = [];
+  let timeoutIds = [];
   let animationFrameId = 0;
   let resizeObserver;
+  let watchers = null;
 
+  const stopRestoring = () => {
+    timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    timeoutIds = [];
+    window.cancelAnimationFrame(animationFrameId);
+    resizeObserver?.disconnect();
+    resizeObserver = undefined;
+    watchers?.();
+    watchers = null;
+  };
+
+  /*
+   * One correct jump, then a short watch for late layout shifts — and the watch
+   * gives up the moment it agrees with the page twice running, or the moment
+   * the reader scrolls. Re-asserting a position for seconds after arrival is
+   * what made the cards feel like they were fighting the scroll.
+   */
   const scheduleRestore = () => {
     const entry = findEntryById(getHistoryState().portfolioReturnSourceId);
 
@@ -146,23 +189,48 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
       return;
     }
 
-    const restore = () => restorePosition(entry, normalizePathname);
+    let settled = 0;
+
+    const restore = () => {
+      const top = resolveTarget(entry, normalizePathname);
+
+      if (Math.abs(window.scrollY - top) <= 1) {
+        settled += 1;
+
+        if (settled >= 2) {
+          stopRestoring();
+        }
+
+        return;
+      }
+
+      settled = 0;
+      scrollToTarget(entry, top);
+    };
+
+    // A manual scroll means the reader has taken over — never scroll over that.
+    const handleUserScroll = () => stopRestoring();
+    const scrollEvents = ['wheel', 'touchmove', 'keydown'];
+    scrollEvents.forEach((type) =>
+      window.addEventListener(type, handleUserScroll, { passive: true }),
+    );
+    watchers = () =>
+      scrollEvents.forEach((type) => window.removeEventListener(type, handleUserScroll));
+
     restore();
     animationFrameId = window.requestAnimationFrame(() => {
       animationFrameId = window.requestAnimationFrame(restore);
     });
     timeoutIds.push(
-      window.setTimeout(restore, 160),
-      window.setTimeout(restore, 600),
-      window.setTimeout(restore, 1400),
-      window.setTimeout(restore, 2800),
+      window.setTimeout(restore, 120),
+      window.setTimeout(restore, 420),
+      window.setTimeout(restore, 900),
+      window.setTimeout(stopRestoring, 1200),
     );
 
     if ('ResizeObserver' in window) {
-      resizeObserver?.disconnect();
       resizeObserver = new window.ResizeObserver(restore);
       resizeObserver.observe(document.documentElement);
-      timeoutIds.push(window.setTimeout(() => resizeObserver?.disconnect(), 3000));
     }
   };
 
@@ -170,6 +238,7 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
 
   const handlePageShow = (event) => {
     if (event.persisted) {
+      stopRestoring();
       scheduleRestore();
     }
   };
@@ -217,13 +286,16 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
       returnEntry?.sourcePath === '/'
     ) {
       event.preventDefault();
+      /*
+       * Case → case: the reader comes back to a card they were never parked on,
+       * so the saved offset into the old card means nothing. Landing just above
+       * the new card puts it at the top of the stack, where it would have been
+       * had they scrolled down to it.
+       */
       const updatedEntry = {
         ...returnEntry,
         destinationPath,
-        anchorOffsetY: Math.max(
-          24,
-          Math.min(returnEntry.anchorOffsetY || 120, window.innerHeight * 0.24),
-        ),
+        anchorDelta: -24,
         createdAt: Date.now(),
       };
 
@@ -238,13 +310,18 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
     }
 
     const container = getAnchorContainer(anchor);
+    /*
+     * How far into the card the reader had scrolled, measured against the
+     * card's place in the flow rather than its rect — a pinned sticky card
+     * reports the pin, and that offset would put them somewhere else on return.
+     */
     const entry = {
       id: createEntryId(),
       sourcePath: pathname,
       destinationPath,
       scrollX: window.scrollX,
       scrollY: window.scrollY,
-      anchorOffsetY: container.getBoundingClientRect().top,
+      anchorDelta: window.scrollY - getDocumentTop(container),
       createdAt: Date.now(),
     };
 
@@ -268,8 +345,6 @@ export function attachReturnNavigation({ pathname, detailPaths, normalizePathnam
   return () => {
     document.removeEventListener('click', handleClick, true);
     window.removeEventListener('pageshow', handlePageShow);
-    window.cancelAnimationFrame(animationFrameId);
-    resizeObserver?.disconnect();
-    timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    stopRestoring();
   };
 }

@@ -74,7 +74,7 @@ export const profile = {
   availability: {
     title: 'Open to Product Designer roles',
     paragraphs: [
-      'Seven years of designing B2C and B2B products across gaming, fintech, proptech, HR Tech, logistics, and SaaS — in-house, in agencies, and with startup teams.',
+      '7 years of designing B2C and B2B products across gaming, fintech, proptech, HR Tech, logistics, and SaaS — in-house, in agencies, and with startup teams.',
     ],
   },
 };
@@ -193,11 +193,18 @@ export const designConceptTeaser = {
   footer: 'Independent studies / portfolio work / visual systems',
   linkLabel: 'Open concept archive',
   href: '/design-concepts',
+  /*
+   * Six shots scattered over the teaser, revealed on hover. Order matters: it
+   * maps to the scatter positions in global.css, and the two last ones are the
+   * pair that drops out of the parked mobile stack.
+   */
   shots: [
     { src: conceptHrSystem, alt: 'Concept shot of an HR management dashboard' },
     { src: conceptFintech, alt: 'Concept shot of an investment app interface' },
     { src: conceptGameStore, alt: 'Concept shot of a game store interface' },
     { src: conceptBeauty, alt: 'Concept shot of a beauty commerce product page' },
+    { src: conceptTravelBooking, alt: 'Concept shot of a stay booking interface' },
+    { src: conceptMedical, alt: 'Concept shot of a clinic booking app' },
   ],
 };
 

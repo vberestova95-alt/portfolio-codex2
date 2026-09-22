@@ -1,17 +1,37 @@
 /*
- * Cursor trail for the concept shots.
+ * Hover reveal for the concept shots.
  *
- * Each shot chases the pointer with its own easing and resting offset, so the
- * cluster spreads out as it travels and settles back into a fanned stack when
- * the pointer leaves. Positions are written as CSS custom properties, which
- * keeps the layout itself declarative.
+ * One shot at a time. The scatter positions are fixed in CSS and every shot
+ * rests at opacity 0; whichever one the pointer is closest to is the one that
+ * shows. Moving across the card hands the reveal from one shot to the next —
+ * the card under the cursor appears, the previous one clears, and the plate is
+ * never carrying more than a single image.
+ *
+ * The active shot also leans towards the pointer by a fraction of its own
+ * distance, so it reads as answering the cursor rather than just switching on.
+ *
+ * JS writes --shot-dx / --shot-dy (the lean) and toggles `is-near`; everything
+ * else stays declarative in CSS.
  */
-const REST = [
-  { x: -0.2, y: -0.08, rotate: -7, ease: 0.14, depth: 1 },
-  { x: 0.16, y: -0.16, rotate: 5, ease: 0.1, depth: 2 },
-  { x: -0.1, y: 0.16, rotate: 4, ease: 0.07, depth: 3 },
-  { x: 0.22, y: 0.1, rotate: -4, ease: 0.05, depth: 4 },
+
+// Per-shot lean strength and easing. Index matches DOM order, which matches the
+// scatter positions in global.css.
+const SHOTS = [
+  { pull: 0.1, ease: 0.16 },
+  { pull: 0.06, ease: 0.11 },
+  { pull: 0.12, ease: 0.19 },
+  { pull: 0.07, ease: 0.13 },
+  { pull: 0.09, ease: 0.1 },
+  { pull: 0.11, ease: 0.15 },
 ];
+
+/*
+ * The lean is capped tighter vertically than horizontally: the scatter sits
+ * directly under the copy, and a shot that can travel 30px up would put its
+ * corner into the last line of the paragraph.
+ */
+const MAX_LEAN_X = 30;
+const MAX_LEAN_Y = 12;
 
 export function attachShotTrail(container) {
   if (!container) {
@@ -26,40 +46,71 @@ export function attachShotTrail(container) {
 
   const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const isCoarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
-  // Below 900px the shots are parked in the corner by CSS, so no chase there.
+  // Below 900px there is no hover to hand the reveal around, so the shots are
+  // parked in the corner and shown outright by CSS.
   const isNarrow = window.matchMedia?.('(max-width: 900px)').matches;
 
-  if (prefersReducedMotion || isCoarsePointer || isNarrow) {
-    return undefined;
+  if (isCoarsePointer || isNarrow) {
+    container.classList.add('is-static');
+    return () => container.classList.remove('is-static');
   }
 
   const state = shots.map((node, index) => {
-    const rest = REST[index % REST.length];
-    return { node, rest, x: 0, y: 0, targetX: 0, targetY: 0 };
+    const config = SHOTS[index % SHOTS.length];
+    return { node, ...config, x: 0, y: 0, targetX: 0, targetY: 0 };
   });
 
   let frame = null;
-  let idle = true;
+  let active = null;
 
-  const restingTarget = () => {
-    const rect = container.getBoundingClientRect();
-    return { x: rect.width * 0.6, y: rect.height * 0.66 };
+  const clamp = (value, limit) => Math.min(limit, Math.max(-limit, value));
+
+  // Centre of a shot in container coordinates, before its own lean is applied.
+  const centreOf = (item, rect) => {
+    const box = item.node.getBoundingClientRect();
+    return {
+      x: box.left + box.width / 2 - rect.left - item.x,
+      y: box.top + box.height / 2 - rect.top - item.y,
+    };
   };
 
-  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-
   /*
-   * The cluster is kept inside the lower part of the card so it never rides up
-   * over the headline, however far the pointer travels.
+   * Nearest centre wins, with no cut-off distance: the pointer is always inside
+   * one shot's territory, so there is always exactly one card on screen and the
+   * handover between them has no gap to fall into.
    */
-  const setTarget = (x, y) => {
+  const setActive = (pointerX, pointerY) => {
     const rect = container.getBoundingClientRect();
-    const cx = clamp(x, rect.width * 0.24, rect.width * 0.84);
-    const cy = clamp(y, rect.height * 0.46, rect.height * 0.78);
+    let next = null;
+    let shortest = Infinity;
 
     state.forEach((item) => {
-      item.targetX = cx + item.rest.x * rect.width * 0.34;
-      item.targetY = cy + item.rest.y * rect.height * 0.3;
+      const centre = centreOf(item, rect);
+      const dx = pointerX - centre.x;
+      const dy = pointerY - centre.y;
+      const distance = Math.hypot(dx, dy);
+
+      item.leanX = clamp(dx * item.pull, MAX_LEAN_X);
+      item.leanY = clamp(dy * item.pull, MAX_LEAN_Y);
+
+      if (distance < shortest) {
+        shortest = distance;
+        next = item;
+      }
+    });
+
+    if (next !== active) {
+      active?.node.classList.remove('is-near');
+      next?.node.classList.add('is-near');
+      active = next;
+    }
+
+    // Only the shot on screen follows the pointer; the rest settle back so they
+    // are in place the next time the reveal reaches them.
+    state.forEach((item) => {
+      const isActive = item === active;
+      item.targetX = isActive ? item.leanX : 0;
+      item.targetY = isActive ? item.leanY : 0;
     });
   };
 
@@ -70,64 +121,65 @@ export function attachShotTrail(container) {
       const dx = item.targetX - item.x;
       const dy = item.targetY - item.y;
 
-      if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+      if (Math.abs(dx) > 0.08 || Math.abs(dy) > 0.08) {
         moving = true;
+        item.x += dx * item.ease;
+        item.y += dy * item.ease;
+      } else {
+        item.x = item.targetX;
+        item.y = item.targetY;
       }
 
-      item.x += dx * item.rest.ease;
-      item.y += dy * item.rest.ease;
-      item.node.style.setProperty('--shot-x', `${item.x.toFixed(1)}px`);
-      item.node.style.setProperty('--shot-y', `${item.y.toFixed(1)}px`);
+      item.node.style.setProperty('--shot-dx', `${item.x.toFixed(2)}px`);
+      item.node.style.setProperty('--shot-dy', `${item.y.toFixed(2)}px`);
     });
 
-    if (moving || !idle) {
-      idle = !moving;
-      frame = requestAnimationFrame(render);
-    } else {
-      frame = null;
-    }
+    frame = moving ? requestAnimationFrame(render) : null;
   };
 
   const requestRender = () => {
-    idle = false;
-
     if (frame === null) {
       frame = requestAnimationFrame(render);
     }
   };
 
-  const handlePointerMove = (event) => {
+  const track = (event) => {
     const rect = container.getBoundingClientRect();
-    setTarget(event.clientX - rect.left, event.clientY - rect.top);
-    requestRender();
+    setActive(event.clientX - rect.left, event.clientY - rect.top);
+
+    if (!prefersReducedMotion) {
+      requestRender();
+    }
   };
 
   const handlePointerLeave = () => {
-    const rest = restingTarget();
-    setTarget(rest.x, rest.y);
+    active?.node.classList.remove('is-near');
+    active = null;
+
+    state.forEach((item) => {
+      item.targetX = 0;
+      item.targetY = 0;
+    });
+
     requestRender();
   };
 
-  // Start from the resting cluster rather than the top-left corner.
-  const initial = restingTarget();
-  setTarget(initial.x, initial.y);
-  state.forEach((item) => {
-    item.x = item.targetX;
-    item.y = item.targetY;
-    item.node.style.setProperty('--shot-x', `${item.x.toFixed(1)}px`);
-    item.node.style.setProperty('--shot-y', `${item.y.toFixed(1)}px`);
-    item.node.style.setProperty('--shot-rotate', `${item.rest.rotate}deg`);
-    item.node.style.setProperty('--shot-depth', String(item.rest.depth));
-  });
-
-  container.addEventListener('pointermove', handlePointerMove);
+  container.addEventListener('pointerenter', track);
+  container.addEventListener('pointermove', track);
   container.addEventListener('pointerleave', handlePointerLeave);
-  container.classList.add('is-trailing');
+
+  if (prefersReducedMotion) {
+    // Keep the swap, drop the travel: CSS shortens the transition and the lean
+    // is never rendered because requestRender is the only writer.
+    container.classList.add('is-calm');
+  }
 
   return () => {
-    container.removeEventListener('pointermove', handlePointerMove);
+    container.removeEventListener('pointerenter', track);
+    container.removeEventListener('pointermove', track);
     container.removeEventListener('pointerleave', handlePointerLeave);
-    container.classList.remove('is-trailing');
+    container.classList.remove('is-calm');
+    active?.node.classList.remove('is-near');
 
     if (frame !== null) {
       cancelAnimationFrame(frame);

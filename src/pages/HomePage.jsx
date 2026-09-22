@@ -183,7 +183,11 @@ function ConceptTeaser({ teaser }) {
       <div className="concept-teaser__shots" aria-hidden="true">
         {teaser.shots.map((shot) => (
           <div key={shot.src} className="concept-shot" data-shot>
-            <img src={shot.src} alt="" />
+            {/* The frame carries the reveal so the wrapper is free for the
+                pointer lean — one transform each, no fighting. */}
+            <span className="concept-shot__frame">
+              <img src={shot.src} alt="" loading="lazy" />
+            </span>
           </div>
         ))}
       </div>

@@ -1715,15 +1715,32 @@ ol.case-bullet-list li::before {
 }
 
 .case-hero {
+  /*
+   * One padding value drives the plate: the media slot and the min-height are
+   * both derived from it, so the hero can be given more air without the two
+   * drifting apart.
+   */
+  --case-hero-pad: clamp(28px, 3vw, 48px);
+  --case-hero-media-h: clamp(420px, 52vw, 780px);
+
+  /*
+   * Metric plates are a lift of whatever tone the page already carries rather
+   * than a colour of their own — a white wash over a dark hero, a stronger one
+   * over a light hero. Each case therefore gets its own plate colour for free,
+   * a shade up from its background. Light heroes override both below.
+   */
+  --case-stat-plate: rgba(255, 255, 255, 0.1);
+  --case-stat-line: rgba(255, 255, 255, 0.16);
+
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1.15fr);
   gap: 24px;
-  min-height: calc(clamp(420px, 52vw, 780px) + 56px);
+  min-height: calc(var(--case-hero-media-h) + var(--case-hero-pad) * 2);
   overflow: hidden;
   position: relative;
   border: 1px solid var(--inverse-line);
   border-radius: var(--r-shell);
-  padding: 28px;
+  padding: var(--case-hero-pad);
   background:
     radial-gradient(circle at 82% 12%, rgba(255, 255, 255, 0.14), transparent 20%),
     linear-gradient(135deg, #1630be 0%, #2550ff 42%, #1227a3 100%);
@@ -1740,6 +1757,9 @@ ol.case-bullet-list li::before {
 
 .case-page--betboom-pass .case-hero {
   background: #090d14;
+  /* Near-black ground: a tenth of white would read as grey, not as a lift. */
+  --case-stat-plate: rgba(255, 255, 255, 0.06);
+  --case-stat-line: rgba(255, 255, 255, 0.1);
 }
 
 .case-page--yandex-turkey .case-hero {
@@ -1748,6 +1768,8 @@ ol.case-bullet-list li::before {
     linear-gradient(135deg, #faf9f2 0%, #f5f1df 52%, #eee6c8 100%);
   border-color: transparent;
   color: #17170f;
+  --case-stat-plate: rgba(255, 255, 255, 0.52);
+  --case-stat-line: rgba(23, 23, 15, 0.08);
 }
 
 .case-page--cat-app .case-hero,
@@ -1758,6 +1780,8 @@ ol.case-bullet-list li::before {
     linear-gradient(135deg, #eef1f3 0%, #e1e6ea 50%, #d3dbe1 100%);
   border-color: transparent;
   color: #142033;
+  --case-stat-plate: rgba(255, 255, 255, 0.56);
+  --case-stat-line: rgba(20, 32, 51, 0.08);
 }
 
 .case-page--yandex-turkey .case-hero__description,
@@ -1782,6 +1806,8 @@ ol.case-bullet-list li::before {
     linear-gradient(135deg, #f4faf4 0%, #dff2e7 44%, #c9ead8 100%);
   border-color: rgba(17, 33, 24, 0.1);
   color: #112118;
+  --case-stat-plate: rgba(255, 255, 255, 0.56);
+  --case-stat-line: rgba(17, 33, 24, 0.09);
 }
 
 .case-page--kokoc-group .case-hero__description,
@@ -1851,11 +1877,17 @@ ol.case-bullet-list li::before {
   border-color: rgba(255, 255, 255, 0.92);
 }
 
+/*
+ * Title at the top, figures and credit line together at the foot. Spreading all
+ * three evenly left a void in the middle of the column — the figures now anchor
+ * the bottom of the plate, which is also where the plates read as a base.
+ */
 .case-hero__copy {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 24px;
+  /* A little more air over the title than the plate's own padding gives. */
+  padding-top: clamp(4px, 1vw, 16px);
 }
 
 .case-hero__intro {
@@ -1864,12 +1896,18 @@ ol.case-bullet-list li::before {
   align-items: flex-start;
 }
 
+/*
+ * Two thirds of the old size. At 92px the title filled the column before it
+ * said anything, and the drop to the chapter headings below it was a cliff.
+ * The looser line-height and tracking come with the smaller size — 0.92/-0.05em
+ * are display settings that only hold up at poster scale.
+ */
 .case-hero__intro h1 {
   margin: 0;
-  max-width: 11ch;
-  font-size: clamp(42px, 6vw, 92px);
-  line-height: 0.92;
-  letter-spacing: -0.05em;
+  max-width: 14ch;
+  font-size: clamp(34px, 4.2vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.035em;
 }
 
 .case-hero__description {
@@ -1881,7 +1919,7 @@ ol.case-bullet-list li::before {
 }
 
 .case-hero__media {
-  height: clamp(420px, 52vw, 780px);
+  height: var(--case-hero-media-h);
   align-self: center;
   overflow: hidden;
   position: relative;
@@ -1902,6 +1940,12 @@ ol.case-bullet-list li::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   /* Wider row gap now that the rules are gone and stacked pairs need separating. */
   gap: 20px clamp(20px, 2.4vw, 40px);
+}
+
+/* The hero figures sit on plates, so they close their own gaps. */
+.case-stat-grid--hero {
+  margin-top: auto;
+  gap: clamp(10px, 1vw, 16px);
 }
 
 /*
@@ -1934,6 +1978,42 @@ ol.case-bullet-list li::before {
   .case-stat-card strong {
     margin-bottom: 0;
   }
+
+  /*
+   * The hero figures are boxes, so they cannot hand their rows to the grid the
+   * way the bare cards above do. Equal-height plates plus space-between get the
+   * same result: every figure starts at the top of its plate and every label
+   * ends at the bottom, however many lines either of them runs to.
+   */
+  .case-stat-grid--hero {
+    grid-template-rows: auto;
+  }
+
+  .case-stat-grid--hero .case-stat-card {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+/*
+ * Plates, a shade up from the hero's own ground (--case-stat-plate). Centred:
+ * the figures are the point of the block, and ranged left they read as the
+ * start of three unequal columns rather than as one row of numbers.
+ */
+.case-stat-grid--hero .case-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: clamp(16px, 1.5vw, 24px) clamp(12px, 1.2vw, 20px);
+  border: 1px solid var(--case-stat-line);
+  border-radius: var(--r-media);
+  background: var(--case-stat-plate);
+  text-align: center;
+}
+
+.case-stat-grid--hero .case-stat-card strong {
+  margin-bottom: 0;
 }
 
 .case-stat-card strong {
@@ -1961,6 +2041,7 @@ ol.case-bullet-list li::before {
   line-height: 1.5;
 }
 
+
 .case-chapters {
   display: grid;
   gap: clamp(54px, 6vw, 96px);
@@ -1983,11 +2064,12 @@ ol.case-bullet-list li::before {
   align-content: start;
 }
 
+/* Stepped down with the hero title so the ladder h1 → h2 → h3 stays even. */
 .case-study-section__intro h2 {
   margin: 0;
-  font-size: clamp(34px, 4vw, 58px);
-  line-height: 0.96;
-  letter-spacing: -0.05em;
+  font-size: clamp(28px, 2.9vw, 44px);
+  line-height: 1.04;
+  letter-spacing: -0.035em;
 }
 
 .case-section-back {
@@ -2532,8 +2614,9 @@ ol.case-bullet-list li::before {
     grid-template-columns: 1fr;
   }
 
-  .case-hero__media {
-    height: 360px;
+  .case-hero {
+    /* Stacked: the media no longer sets the plate's height, so nor should it. */
+    --case-hero-media-h: 360px;
   }
 
   .work-card__visual {
@@ -2625,6 +2708,14 @@ ol.case-bullet-list li::before {
     grid-template-columns: 1fr;
   }
 
+  /*
+   * The plates are compact enough to stay in a row here — stacked, three of
+   * them would add a screen of height to the hero for three short figures.
+   */
+  .case-stat-grid--hero {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .bento-tile--wide,
   .bento-tile--half,
   .bento-tile--third {
@@ -2664,6 +2755,18 @@ ol.case-bullet-list li::before {
   .home-footer__panel,
   .case-hero {
     padding: 20px;
+  }
+
+  /*
+   * Three plates across is too narrow for a phone. Two, with a lone third
+   * spanning the row, keeps them looking placed rather than left over.
+   */
+  .case-stat-grid--hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .case-stat-grid--hero .case-stat-card:last-child:nth-child(odd) {
+    grid-column: span 2;
   }
 
   .hero-panel {
@@ -3020,8 +3123,10 @@ ol.case-bullet-list li::before {
 }
 
 /*
- * The shots sit in their own layer under the copy. shotTrail.js writes
- * --shot-x / --shot-y, so the chase is driven by transforms only.
+ * The shots sit in their own layer under the copy. They are scattered across
+ * the card by the nth-child rules below and stay invisible; shotTrail.js marks
+ * whichever one the pointer is nearest with `is-near` and writes its lean
+ * (--shot-dx / --shot-dy). Only that one is ever on screen.
  */
 .concept-teaser__shots {
   position: absolute;
@@ -3039,26 +3144,65 @@ ol.case-bullet-list li::before {
   left: 0;
   right: 0;
   bottom: 0;
+  /* Above every shot: the bottom row now sinks into this fade. */
   z-index: 9;
-  height: 132px;
-  background: linear-gradient(to top, var(--paper) 26%, rgba(255, 255, 255, 0) 100%);
+  height: 172px;
+  background: linear-gradient(to top, var(--paper) 42%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
 }
 
 .concept-shot {
   position: absolute;
-  top: 0;
-  left: 0;
+  left: var(--shot-left, 50%);
+  top: var(--shot-top, 50%);
   width: clamp(140px, 15vw, 206px);
   aspect-ratio: 4 / 3;
+  /* The lean only — the reveal lives on the frame inside. */
+  transform: translate3d(
+    calc(var(--shot-dx, 0px) - 50%),
+    calc(var(--shot-dy, 0px) - 50%),
+    0
+  );
+  z-index: var(--shot-depth, 1);
+}
+
+.concept-shot__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   border: 1px solid rgba(13, 17, 23, 0.1);
   border-radius: 14px;
   background: var(--paper);
   box-shadow: 0 22px 44px -26px rgba(13, 17, 23, 0.5);
-  transform: translate3d(var(--shot-x, 0), var(--shot-y, 0), 0)
-    translate(-50%, -50%) rotate(var(--shot-rotate, 0deg));
-  z-index: var(--shot-depth, 1);
+  /*
+   * Resting state: out of sight, a touch small and a touch low. The fade out is
+   * slower than the fade in, so during a handover the outgoing shot is still
+   * on its way out as the incoming one arrives and the swap has no dead frame.
+   */
+  opacity: 0;
+  transform: rotate(var(--shot-rotate, 0deg)) translateY(14px) scale(0.92);
+  transform-origin: center;
+  transition:
+    opacity 260ms ease,
+    transform 420ms cubic-bezier(0.22, 0.8, 0.24, 1),
+    box-shadow 260ms ease;
+  will-change: opacity, transform;
+}
+
+/* The one shot the cursor is nearest to — the only one ever visible. */
+.concept-shot.is-near {
+  z-index: 8;
+}
+
+.concept-shot.is-near .concept-shot__frame {
+  opacity: 1;
+  transform: rotate(var(--shot-rotate, 0deg)) translateY(0) scale(1);
+  box-shadow: 0 30px 56px -24px rgba(13, 17, 23, 0.5);
+  transition:
+    opacity 180ms ease,
+    transform 420ms cubic-bezier(0.22, 0.8, 0.24, 1),
+    box-shadow 260ms ease;
 }
 
 .concept-shot img {
@@ -3067,25 +3211,69 @@ ol.case-bullet-list li::before {
   object-fit: cover;
 }
 
-/* Without JS the shots stay in a readable fanned cluster. */
-.concept-teaser:not(.is-trailing) .concept-shot:nth-child(1) {
-  --shot-x: 38%;
-  --shot-y: 62%;
+/*
+ * The scatter fills the plate below the copy — two loose, overlapping rows that
+ * run edge to edge. Placing any of them higher would put a screenshot straight
+ * over the headline for as long as the pointer is inside the card, and the
+ * reveal is meant to be read alongside the copy, not instead of it.
+ */
+.concept-shot:nth-child(1) {
+  --shot-left: 78%;
+  --shot-top: 62%;
+  --shot-rotate: -7deg;
+  --shot-depth: 3;
 }
 
-.concept-teaser:not(.is-trailing) .concept-shot:nth-child(2) {
-  --shot-x: 62%;
-  --shot-y: 54%;
+.concept-shot:nth-child(2) {
+  --shot-left: 22%;
+  --shot-top: 64%;
+  --shot-rotate: 5deg;
+  --shot-depth: 1;
 }
 
-.concept-teaser:not(.is-trailing) .concept-shot:nth-child(3) {
-  --shot-x: 48%;
-  --shot-y: 82%;
+.concept-shot:nth-child(3) {
+  --shot-left: 50%;
+  --shot-top: 60%;
+  --shot-rotate: -3deg;
+  --shot-depth: 2;
 }
 
-.concept-teaser:not(.is-trailing) .concept-shot:nth-child(4) {
-  --shot-x: 74%;
-  --shot-y: 76%;
+.concept-shot:nth-child(4) {
+  --shot-left: 80%;
+  --shot-top: 82%;
+  --shot-rotate: 6deg;
+  --shot-depth: 5;
+}
+
+.concept-shot:nth-child(5) {
+  --shot-left: 20%;
+  --shot-top: 84%;
+  --shot-rotate: -5deg;
+  --shot-depth: 4;
+}
+
+.concept-shot:nth-child(6) {
+  --shot-left: 50%;
+  --shot-top: 79%;
+  --shot-rotate: 3deg;
+  --shot-depth: 6;
+}
+
+/*
+ * Touch devices wide enough to keep the scattered layout have no hover, so the
+ * shots are simply shown in place.
+ */
+.concept-teaser.is-static .concept-shot__frame {
+  opacity: 1;
+  transform: rotate(var(--shot-rotate, 0deg));
+  transition: none;
+}
+
+/* Reduced motion keeps the swap but drops the travel. */
+.concept-teaser.is-calm .concept-shot__frame,
+.concept-teaser.is-calm .concept-shot.is-near .concept-shot__frame {
+  transform: rotate(var(--shot-rotate, 0deg));
+  transition: opacity 140ms ease;
 }
 
 .concept-hero {
@@ -3222,40 +3410,50 @@ ol.case-bullet-list li::before {
     grid-column: span 1;
   }
 
-  .concept-teaser:not(.is-trailing) .concept-shot,
-  .concept-teaser.is-trailing .concept-shot {
+  /*
+   * No hover to reveal on, so the shots are shown outright, parked as a fanned
+   * stack in the corner. Six would not fit at this width — the last two drop
+   * out and the first four keep the original cluster.
+   */
+  .concept-shot {
     top: auto;
     left: auto;
     width: clamp(116px, 31vw, 168px);
-    transform: rotate(var(--shot-rotate, 0deg));
+    transform: none;
   }
 
-  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(1),
-  .concept-teaser.is-trailing .concept-shot:nth-child(1) {
+  .concept-shot__frame {
+    opacity: 1;
+    transform: rotate(var(--shot-rotate, 0deg));
+    transition: none;
+  }
+
+  .concept-shot:nth-child(1) {
     right: clamp(74px, 20vw, 108px);
     bottom: clamp(62px, 16vw, 88px);
     --shot-rotate: -7deg;
   }
 
-  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(2),
-  .concept-teaser.is-trailing .concept-shot:nth-child(2) {
+  .concept-shot:nth-child(2) {
     right: clamp(48px, 13vw, 72px);
     bottom: clamp(40px, 11vw, 60px);
     --shot-rotate: 5deg;
   }
 
-  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(3),
-  .concept-teaser.is-trailing .concept-shot:nth-child(3) {
+  .concept-shot:nth-child(3) {
     right: clamp(24px, 7vw, 38px);
     bottom: clamp(20px, 6vw, 32px);
     --shot-rotate: -3deg;
   }
 
-  .concept-teaser:not(.is-trailing) .concept-shot:nth-child(4),
-  .concept-teaser.is-trailing .concept-shot:nth-child(4) {
+  .concept-shot:nth-child(4) {
     right: 0;
     bottom: 0;
     --shot-rotate: 4deg;
+  }
+
+  .concept-shot:nth-child(n + 5) {
+    display: none;
   }
 
   /*
