@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function ContactLink({ contact, className }) {
+export function ContactLink({ contact, className, onClick }) {
   const isExternal = contact.href.startsWith('http');
   const isCv = contact.label === 'CV';
 
@@ -11,6 +11,7 @@ export function ContactLink({ contact, className }) {
       target={isExternal ? '_blank' : undefined}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       download={isCv ? 'Vladislava-Berestova-CV.pdf' : undefined}
+      onClick={onClick}
     >
       {contact.label}
     </a>

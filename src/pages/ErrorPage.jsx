@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import knotGraphic from '../assets/editorial-knot.png';
+import editorialObject from '../assets/editorial-object.webp';
 
 export function ErrorPage({
   code,
@@ -64,7 +64,7 @@ export function ErrorPage({
 
         <div className="error-page__visual" aria-hidden="true">
           <span>{code}</span>
-          <img src={knotGraphic} alt="" />
+          <img src={editorialObject} alt="" />
         </div>
 
         <div className="error-page__footer">
@@ -83,7 +83,7 @@ export function NotFoundPage() {
       label="Page not found"
       titleStart="This page slipped"
       titleAccent="out of"
-      titleEnd=" the system."
+      titleEnd=" the system"
       description="The link may be outdated, or the page may have moved. The selected work is still exactly where it should be."
       primaryLabel="Back to selected work"
     />
@@ -97,7 +97,7 @@ export function RuntimeErrorPage() {
       label="Unexpected interface error"
       titleStart="Something went"
       titleAccent="off-grid"
-      titleEnd="."
+      titleEnd=""
       description="The interface hit an unexpected error. Reloading usually puts everything back in place."
       primaryLabel="Reload the page"
       onPrimaryAction={() => window.location.reload()}

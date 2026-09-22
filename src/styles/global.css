@@ -195,9 +195,9 @@ button {
   position: absolute;
   right: clamp(-100px, -4vw, -40px);
   bottom: clamp(-80px, -5vw, -26px);
-  width: clamp(320px, 38vw, 720px);
-  aspect-ratio: 358 / 352;
-  transform: rotate(-12deg);
+  width: clamp(260px, 30vw, 520px);
+  aspect-ratio: 1190 / 1141;
+  transform: rotate(64deg);
   pointer-events: none;
 }
 
@@ -213,9 +213,9 @@ button {
 
 .error-page__visual img {
   position: absolute;
-  top: -7.1%;
-  left: -64%;
-  width: 231.3%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   max-width: none;
   filter: saturate(0.88) contrast(1.08);
 }
@@ -289,6 +289,15 @@ button {
   border-top: 1px solid var(--line);
 }
 
+/*
+ * No eyebrow to fill the first column, so the content would be auto-placed into
+ * it and set in 200px. One full-width column instead, which also puts the
+ * heading's left edge on the same line as the content below it.
+ */
+.section-header--no-label {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .section-label {
   margin: 0;
   text-transform: uppercase;
@@ -322,17 +331,26 @@ button {
   padding: 20px 0 clamp(24px, 2.6vw, 40px);
 }
 
+/*
+ * Full-height, but as a floor rather than a fixed size. The panel clips its
+ * overflow to keep the grain and the rounded corners in, so a hard height meant
+ * that on a short laptop screen the last line of the paragraph was simply cut
+ * off. As a minimum it still fills a tall viewport and grows when the copy
+ * needs more room than the screen has.
+ */
 .hero-panel {
+  /* Named so the object below can subtract it — see .hero-panel__object. */
+  --hero-pad-bottom: clamp(24px, 2vw, 32px);
+
   position: relative;
-  height: calc(100vh - 36px);
-  min-height: 700px;
+  min-height: max(700px, calc(100vh - 36px));
   display: flex;
   flex-direction: column;
   gap: 20px;
   overflow: hidden;
   border: 1px solid var(--inverse-line);
   border-radius: var(--r-shell);
-  padding: 28px clamp(32px, 2.8vw, 48px) 24px;
+  padding: clamp(36px, 3.5vw, 62px) clamp(32px, 2.8vw, 48px) var(--hero-pad-bottom);
   background:
     radial-gradient(circle at 12% 82%, rgba(255, 255, 255, 0.12), transparent 30%),
     radial-gradient(circle at 88% 18%, rgba(255, 255, 255, 0.12), transparent 26%),
@@ -376,17 +394,18 @@ button {
 }
 
 /*
- * Hero object. The source PNG carries a lot of transparent margin, so the
- * wrapper is sized to the artwork's real bounding box and the image is scaled
- * and offset inside it — that way the knot can be positioned by eye.
+ * Hero object. The file is trimmed to the artwork, so the wrapper is simply the
+ * artwork's own ratio and the image fills it — no offsets to keep in sync.
  */
 .hero-panel__object {
   position: absolute;
   z-index: 0;
   top: 48%;
   right: clamp(0px, 1vw, 28px);
-  width: clamp(260px, 30vw, 560px);
-  aspect-ratio: 358 / 352;
+  width: clamp(290px, 33vw, 640px);
+  /* The object's own ratio, so `contain` has nothing to letterbox and the glow
+     behind it stays centred on the artwork rather than on an empty slot. */
+  aspect-ratio: 1190 / 1141;
   transform: translateY(-50%);
   pointer-events: none;
 }
@@ -401,44 +420,42 @@ button {
   animation: hero-glow-secondary 14s ease-in-out infinite alternate;
 }
 
-.hero-panel__object-float {
+/* Either a still or a clip fills the slot — the motion code drives whichever. */
+.hero-panel__object img,
+.hero-panel__object video {
   position: absolute;
   inset: 0;
-  animation: hero-object-float 16s ease-in-out infinite;
-}
-
-.hero-panel__object.is-pointer-driven {
-  perspective: 1100px;
-}
-
-.hero-panel__object img {
-  position: absolute;
-  top: -7.1%;
-  left: -64%;
-  width: 231.3%;
+  width: 100%;
+  height: 100%;
   max-width: none;
+  object-fit: contain;
   transform-origin: 50% 50%;
   will-change: transform;
   filter: drop-shadow(0 34px 60px rgba(6, 12, 46, 0.45));
 }
 
+/*
+ * One render is reused in every slot, so each one sets its own resting angle —
+ * the float carries that angle rather than resetting it to zero.
+ */
 @keyframes hero-object-float {
   0%,
   100% {
-    transform: translate3d(0, 0, 0) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(var(--object-angle, 0deg));
   }
 
   50% {
-    transform: translate3d(0, -18px, 0) rotate(-2.4deg);
+    transform: translate3d(0, -18px, 0) rotate(calc(var(--object-angle, 0deg) - 2.4deg));
   }
 }
 
+/* Above the copy below it, so the mobile menu panel is not painted over. */
 .hero-panel__top {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 16px;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -447,12 +464,33 @@ button {
   color: rgba(247, 248, 252, 0.72);
 }
 
+/*
+ * The copy is centred in the leftover height. Reserving some of that height at
+ * the bottom lifts the block above dead centre, which reads better against the
+ * headline's weight.
+ *
+ * The top padding is a floor, not a spacer: once the panel runs out of slack the
+ * centring gives back nothing, and the headline ended up 20px under the menu —
+ * closer to it than to its own paragraph, which reads as though the menu belongs
+ * to the headline.
+ */
 .hero-panel__grid {
   position: relative;
   z-index: 1;
   flex: 1;
   display: flex;
   align-items: center;
+  padding-top: clamp(30px, 3vw, 48px);
+  padding-bottom: clamp(24px, 2.4vh, 40px);
+}
+
+/*
+ * The deep reserve below the copy exists to clear the client logo row. With the
+ * row switched off it was simply 100px of dead space at the foot of the panel,
+ * so it is spent only when the row is actually rendered.
+ */
+.hero-panel:has(.hero-panel__footer) .hero-panel__grid {
+  padding-bottom: clamp(48px, 9vh, 120px);
 }
 
 .hero-panel__copy {
@@ -464,24 +502,43 @@ button {
 .hero-panel h1 {
   margin: 0;
   max-width: 12ch;
-  font-size: clamp(68px, 8.8vw, 144px);
-  line-height: 0.88;
-  letter-spacing: -0.06em;
+  font-size: clamp(50px, 6.8vw, 110px);
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+}
+
+/*
+ * Inner/outer spacing: the portrait and the paragraphs belong to one block, so
+ * the gap that separates them from the headline is wider than any gap inside.
+ */
+.hero-panel__intro {
+  --lead-size: clamp(17px, 1.55vw, 22px);
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(18px, 1.6vw, 26px);
+  margin-top: clamp(34px, 3.6vw, 56px);
+  /*
+   * The percentage is what actually holds the text clear of the knot on the
+   * right; the ch cap only kicks in on very wide screens, where 66% would run
+   * past a comfortable measure.
+   */
+  max-width: min(100ch, 63%);
 }
 
 .hero-panel__lead {
-  margin: 18px 0 0;
-  max-width: min(58ch, 58%);
-  font-size: clamp(18px, 1.75vw, 25px);
-  line-height: 1.52;
+  margin: 0;
+  font-size: var(--lead-size);
+  line-height: 1.55;
   color: rgba(247, 248, 252, 0.92);
 }
 
-.hero-panel__copy > .hero-panel__lead:first-of-type {
-  margin-top: 38px;
+.hero-panel__intro-copy {
+  display: grid;
+  gap: 14px;
 }
 
-.hero-panel__top-contacts,
 .client-band,
 .home-footer__links {
   display: flex;
@@ -489,8 +546,53 @@ button {
   gap: 12px;
 }
 
-.hero-panel__top-contacts {
+/* ------------------------------------------------------------- top nav menu */
+
+.nav-menu {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
   justify-content: flex-end;
+  gap: 12px;
+}
+
+.nav-menu__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.nav-menu__burger {
+  display: none;
+}
+
+/*
+ * Set to the pills' size on purpose. At the row's inherited 12px the caps sat
+ * on a different optical centre than the 14px caps inside the pills — the boxes
+ * lined up but the lettering did not. Same size, same cap height, one line. It
+ * also carries the full ink of the two, being the name rather than a link.
+ */
+.hero-panel__brand {
+  font-size: 14px;
+  color: var(--inverse);
+  transition: opacity 160ms ease;
+}
+
+/*
+ * letter-spacing inherits as a computed length, not as a ratio. Both of these
+ * set their own 14px but were carrying the 12px row's 1.44px, which works out
+ * to 0.103em — against the 0.12em every other caps label on the site uses.
+ * Re-stating the token resolves it against their own size.
+ */
+.hero-panel__brand,
+.hero-panel__top .contact-link {
+  letter-spacing: var(--tracking-caps);
+}
+
+.hero-panel__brand:hover {
+  opacity: 0.72;
 }
 
 .contact-link,
@@ -519,28 +621,82 @@ button {
 .hero-panel__footer {
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px clamp(20px, 2.4vw, 40px);
   align-items: center;
-  padding-top: 20px;
+  padding-top: clamp(18px, 1.8vw, 26px);
   border-top: 1px solid var(--inverse-line);
 }
 
-.hero-panel__portrait img {
-  width: 74px;
-  height: 74px;
-  object-fit: cover;
-  border-radius: 999px;
-  border: 1px solid var(--inverse-line);
+/*
+ * A soft-cornered landscape card, on the same radius scale as the media below.
+ * Its top edge is dropped to the cap line of the first line of text rather than
+ * the top of the line box — Manrope's caps start 0.42em down from it, so a card
+ * flush with the box reads as sitting too high.
+ */
+.hero-panel__portrait {
+  width: clamp(104px, 8.6vw, 136px);
+  aspect-ratio: 4 / 3;
+  margin-top: calc(var(--lead-size) * 0.42);
+  overflow: hidden;
+  border-radius: var(--r-media);
+  border: 1px solid rgba(247, 248, 252, 0.32);
 }
 
-.hero-panel__footer p {
+/*
+ * The source is a 3:4 portrait, so a landscape cover-fit shows the full frame
+ * width and the face ends up tiny. These numbers frame the crop on the face
+ * instead: the band starts 36% down the frame, and the zoom with the matching
+ * shift centres the head and shoulders in the card. The shift has to track the
+ * scale — it is 0.073 of it, the face's offset from the frame centre.
+ */
+.hero-panel__portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 36%;
+  transform: translateX(10.6%) scale(1.45);
+}
+
+.hero-clients {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px clamp(20px, 2.2vw, 40px);
+  width: 100%;
   margin: 0;
-  max-width: 52rem;
-  font-size: 16px;
-  line-height: 1.6;
-  color: rgba(247, 248, 252, 0.82);
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Each row cell is the same height, so the logos sit on one line however much
+ * padding their own artboards carry.
+ */
+.hero-client {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+}
+
+/*
+ * The source files are full-colour brand assets. Flattening them to white keeps
+ * the band reading as one row on the blue panel instead of six loose logos.
+ */
+.hero-client img {
+  height: var(--logo-h, 20px);
+  width: auto;
+  transform: translateY(var(--logo-y, 0));
+  filter: brightness(0) invert(1);
+  opacity: 0.82;
+  transition: opacity 160ms ease;
+}
+
+.hero-client img:hover {
+  opacity: 1;
 }
 
 .work-stack {
@@ -579,7 +735,6 @@ button {
   }
 }
 
-.work-card,
 .editorial-card,
 .achievement-card,
 .case-content-block,
@@ -619,6 +774,11 @@ button {
   white-space: nowrap;
 }
 
+/*
+ * No outline: the fill is what separates one card from the next, and a hairline
+ * on top of it only read as a seam. Radius is set here rather than in the
+ * shared rule above, which the card no longer belongs to.
+ */
 .work-card {
   cursor: pointer;
   overflow: hidden;
@@ -626,6 +786,7 @@ button {
   position: relative;
   display: flex;
   flex-direction: column;
+  border-radius: var(--r-card);
   transform-origin: top center;
   transition: transform 340ms cubic-bezier(0.22, 0.8, 0.24, 1);
 }
@@ -655,22 +816,32 @@ button {
   border-color: rgba(247, 248, 252, 0.14);
 }
 
+/*
+ * The top-left corner needs its own tone: the cream card sits directly above
+ * this one in the stack, and the old near-white corner (a #f4faf4 start under a
+ * 0.74 white highlight) ran straight into it with no edge.
+ */
 .work-card--mint,
 .case-next__card--mint .case-next__media {
   background:
-    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.74), transparent 24%),
-    radial-gradient(circle at 82% 16%, rgba(220, 255, 239, 0.54), transparent 30%),
-    linear-gradient(135deg, #f4faf4 0%, #dff2e7 44%, #c9ead8 100%);
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.34), transparent 24%),
+    radial-gradient(circle at 82% 16%, rgba(220, 255, 239, 0.46), transparent 30%),
+    linear-gradient(135deg, #e2f3e9 0%, #cbe9d8 44%, #b1dbc4 100%);
   color: #112118;
   border-color: rgba(17, 33, 24, 0.1);
 }
 
+/*
+ * Deeper than the other light surfaces on purpose: the original top stop was
+ * within a shade of the page background (#f2f4f8), so with the outline gone the
+ * card had no edge left to read against.
+ */
 .work-card--pet,
 .case-next__card--pet .case-next__media {
   background:
-    radial-gradient(circle at 15% 16%, rgba(255, 255, 255, 0.48), transparent 26%),
-    radial-gradient(circle at 82% 14%, rgba(237, 240, 243, 0.42), transparent 32%),
-    linear-gradient(135deg, #eef1f3 0%, #e1e6ea 50%, #d3dbe1 100%);
+    radial-gradient(circle at 15% 16%, rgba(255, 255, 255, 0.42), transparent 26%),
+    radial-gradient(circle at 82% 14%, rgba(237, 240, 243, 0.34), transparent 32%),
+    linear-gradient(135deg, #dde5ee 0%, #c8d4e2 50%, #b2c1d3 100%);
   color: #142033;
   border-color: transparent;
 }
@@ -684,10 +855,9 @@ button {
 
 .work-card__meta {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   margin-bottom: 24px;
-  justify-content: flex-end;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
   font-size: 12px;
@@ -701,7 +871,7 @@ button {
   display: grid;
   grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
   gap: 24px;
-  align-items: end;
+  align-items: stretch;
 }
 
 .work-card__copy {
@@ -711,6 +881,12 @@ button {
   max-width: 34rem;
 }
 
+/*
+ * The tag keeps the top-left corner, opposite the year. Everything below it is
+ * centred in the space that is left rather than pinned to the bottom edge,
+ * which is where the next sticky card slides in over the content — the auto
+ * margin under the metrics is the other half of that centring.
+ */
 .work-card__kicker {
   margin: 0 0 auto;
   text-transform: uppercase;
@@ -748,7 +924,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin: 28px 0 47px;
+  margin: 28px 0 auto;
   padding: 0;
   list-style: none;
 }
@@ -942,10 +1118,17 @@ button {
     padding-bottom: 16vh;
   }
 
+  /*
+   * The next card in the stack slides up over this one, so the bottom strip of
+   * every card is covered before it has been read. The content itself is centred
+   * now (see .work-card__body), so this only has to keep the media frame off
+   * that incoming edge — it no longer carries the copy clear on its own.
+   */
   .work-card {
     position: sticky;
     top: calc(18px + (var(--stack-index) * 12px));
     z-index: calc(10 + var(--stack-index));
+    padding-bottom: clamp(48px, 8vh, 96px);
   }
 
   .work-card:not(:first-child) {
@@ -977,9 +1160,14 @@ button {
   background: rgba(255, 255, 255, 0.96);
 }
 
+/*
+ * Weight sits on the right-hand card: it carries the longer heading, and both
+ * headings are set to land on three lines at this split (see
+ * .editorial-card--practice below).
+ */
 .two-column-section {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: var(--gap-block);
 }
 
@@ -1075,8 +1263,17 @@ button {
   min-height: clamp(420px, 52vw, 560px);
 }
 
+/*
+ * Three lines is the target for this heading. Two things get it there: the 12ch
+ * cap above is dropped so the card itself is the measure (it was wrapping at
+ * ~650px inside a 780px card), and the type ramp is a shade shallower than the
+ * shared 5vw — at 5vw the heading tips onto a fourth line between 1280px and
+ * 1500px, where the column is not yet wide enough to absorb it.
+ */
 .editorial-card--practice .editorial-card__title {
+  max-width: none;
   margin-top: 17px;
+  font-size: clamp(42px, 4.7vw, 82px);
 }
 
 .editorial-card--practice .editorial-card__copy {
@@ -1087,10 +1284,12 @@ button {
 }
 
 .editorial-card__graphic {
+  --object-angle: -124deg;
+
   position: absolute;
-  right: -5%;
-  bottom: -7%;
-  width: min(58%, 400px);
+  right: -8%;
+  bottom: -11%;
+  width: min(38%, 270px);
   opacity: 0.95;
   filter: drop-shadow(0 30px 50px rgba(4, 10, 40, 0.4));
   animation: hero-object-float 22s ease-in-out infinite;
@@ -1099,7 +1298,7 @@ button {
 /* Single-column but wide: the artwork keeps scaling with the card. */
 @media (max-width: 1240px) and (min-width: 901px) {
   .editorial-card__graphic {
-    width: min(62%, clamp(420px, 42vw, 520px));
+    width: min(40%, clamp(270px, 27vw, 335px));
   }
 
   /* Tighter cap so the last line clears the artwork at the low end of the range. */
@@ -1117,9 +1316,9 @@ button {
   /* Pushed into the corner so the ring's metal starts to the right of the tag
      row — it stays large, the tags keep the floor. */
   .editorial-card__graphic {
-    right: -26%;
-    bottom: -22%;
-    width: min(92%, 640px);
+    right: -13%;
+    bottom: -19%;
+    width: min(60%, 415px);
   }
 
   /*
@@ -1196,35 +1395,59 @@ button {
   line-height: 1.6;
 }
 
-.experience-table {
-  border-top: 1px solid var(--line);
+/*
+ * Only the rules between rows survive here. The section's own top rule, the one
+ * under the heading and the one below the last row are all off, so the block
+ * opens and closes on space rather than on a line.
+ */
+.experience-section .section-header {
+  border-top: 0;
 }
 
+.experience-row:last-child {
+  border-bottom: 0;
+}
+
+/*
+ * Two columns, both reading from the same top line, and the first one starts at
+ * the grid's left edge — flush with the section heading above and with every
+ * other left edge on the page. The separate date column that used to sit there
+ * pushed the company names 224px in, off that line.
+ *
+ * The company column is fluid rather than a fixed width: at 300px "Ronas IT /
+ * Doubletapp / Luch / Revvy" stacked into a four-line tower and dragged its
+ * role far below every other row's.
+ */
 .experience-row {
   display: grid;
-  grid-template-columns: 220px 300px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.4fr);
+  gap: 24px clamp(24px, 2.4vw, 40px);
+  align-items: start;
   padding: clamp(28px, 3vw, 44px) 0;
   border-bottom: 1px solid var(--line);
 }
 
-.experience-row__meta,
 .experience-row__title p {
   color: var(--ink-faint);
 }
 
-.experience-row__meta {
-  display: grid;
-  gap: 8px;
-  font-size: 14px;
-  line-height: 1.5;
+/* Dates ride on the role's line, in the role's own style. */
+.experience-row__period::before {
+  content: '/';
+  margin: 0 9px;
+  opacity: 0.55;
 }
 
+/*
+ * Pulled back from 3vw. The old ramp put a 44px company name next to an 18px
+ * role and an 18px summary, which read as a heading that had wandered in from
+ * another section rather than one row of a table.
+ */
 .experience-row__title h3 {
   margin: 0;
-  font-size: clamp(28px, 3vw, 44px);
-  line-height: 0.98;
-  letter-spacing: -0.04em;
+  font-size: clamp(24px, 2.1vw, 34px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
 }
 
 .experience-row__title p,
@@ -1234,12 +1457,41 @@ button {
   line-height: 1.7;
 }
 
+/*
+ * Capped to a readable measure. The widened column ran the summary edge to edge
+ * at about 98 characters a line on a 16" screen; the bullet lists in this same
+ * block already stop at 78ch.
+ */
+.experience-row__body p {
+  max-width: 76ch;
+  margin-top: 0;
+}
+
+/*
+ * Only while the row is three columns wide. The summary's first line then reads
+ * against the company name, so it is aligned on cap height rather than on the
+ * top of the line box: an 18px line at 1.7 carries far more half-leading than a
+ * 34px line at 1.04, measured at 3.2px on this ramp. The period column needs no
+ * correction — it came out 0.2px off on the same measurement. Below 1241px the
+ * row stacks and the grid's own row gap is the right spacing.
+ */
+@media (min-width: 1241px) {
+  .experience-row__body p {
+    margin-top: -3px;
+  }
+}
+
 .experience-row__body ul,
 .additional-list,
+/* The heading above now owns the gap, so the list no longer adds its own. */
 .case-bullet-list {
-  margin: 18px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
+}
+
+.case-bullet-list + .case-rich-text {
+  margin-top: 16px;
 }
 
 .experience-row__body ul,
@@ -1275,16 +1527,29 @@ ol.case-bullet-list {
   counter-reset: item;
 }
 
+/*
+ * The dash marker above is positioned out into the indent; the counter was not,
+ * so it ran inline and printed as "01Text". Same treatment, with a wider indent
+ * to clear two digits.
+ */
+ol.case-bullet-list li {
+  padding-left: 34px;
+}
+
 ol.case-bullet-list li::before {
   content: counter(item, decimal-leading-zero);
   counter-increment: item;
-  top: 0;
+  position: absolute;
+  left: 0;
+  top: 6px;
   width: auto;
   height: auto;
   background: none;
   font-size: 12px;
   line-height: 1.5;
-  letter-spacing: 0.14em;
+  /* Same 12px label register as the caps elsewhere, so the same token — it was
+     on a one-off 0.14em. */
+  letter-spacing: var(--tracking-caps);
   color: var(--ink-faint);
 }
 
@@ -1322,11 +1587,13 @@ ol.case-bullet-list li::before {
 }
 
 .home-footer__graphic {
+  --object-angle: 146deg;
+
   position: absolute;
-  right: -14%;
-  bottom: -42%;
+  right: -4%;
+  bottom: -46%;
   z-index: 0;
-  width: min(50vw, 720px);
+  width: min(22vw, 320px);
   max-width: none;
   opacity: 0.98;
   pointer-events: none;
@@ -1382,9 +1649,9 @@ ol.case-bullet-list li::before {
    of the crop. Phones keep the original placement, which already worked. */
 @media (max-width: 900px) and (min-width: 641px) {
   .home-footer__graphic {
-    right: -10%;
-    bottom: -24%;
-    width: min(56vw, 380px);
+    right: -6%;
+    bottom: -20%;
+    width: min(36vw, 245px);
   }
 }
 
@@ -1417,10 +1684,7 @@ ol.case-bullet-list li::before {
   color: var(--ink);
 }
 
-.site-topbar__contacts {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+.site-topbar .nav-menu__links {
   gap: 8px;
 }
 
@@ -1480,7 +1744,8 @@ ol.case-bullet-list li::before {
   color: #17170f;
 }
 
-.case-page--cat-app .case-hero {
+.case-page--cat-app .case-hero,
+.case-page--pet-injection-tracker .case-hero {
   background:
     radial-gradient(circle at 15% 16%, rgba(255, 255, 255, 0.48), transparent 26%),
     radial-gradient(circle at 82% 14%, rgba(237, 240, 243, 0.42), transparent 32%),
@@ -1497,7 +1762,10 @@ ol.case-bullet-list li::before {
 
 .case-page--cat-app .case-hero__description,
 .case-page--cat-app .case-stat-card span,
-.case-page--cat-app .case-hero__meta {
+.case-page--cat-app .case-hero__meta,
+.case-page--pet-injection-tracker .case-hero__description,
+.case-page--pet-injection-tracker .case-stat-card span,
+.case-page--pet-injection-tracker .case-hero__meta {
   color: rgba(20, 32, 51, 0.68);
 }
 
@@ -1592,16 +1860,16 @@ ol.case-bullet-list li::before {
 
 .case-hero__intro h1 {
   margin: 0;
-  max-width: 9ch;
-  font-size: clamp(54px, 8vw, 118px);
-  line-height: 0.9;
-  letter-spacing: -0.06em;
+  max-width: 11ch;
+  font-size: clamp(42px, 6vw, 92px);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
 }
 
 .case-hero__description {
-  margin: 20px 0 0;
-  max-width: 40ch;
-  font-size: clamp(18px, 2vw, 28px);
+  margin: clamp(18px, 1.8vw, 26px) 0 0;
+  max-width: 46ch;
+  font-size: clamp(17px, 1.5vw, 22px);
   line-height: 1.55;
   color: rgba(247, 248, 252, 0.9);
 }
@@ -1626,12 +1894,40 @@ ol.case-bullet-list li::before {
 .case-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  /* Wider row gap now that the rules are gone and stacked pairs need separating. */
+  gap: 20px clamp(20px, 2.4vw, 40px);
 }
 
+/*
+ * No rules above the figures — the column gap does the separating now, so the
+ * numbers read as one row instead of three ruled-off boxes.
+ */
 .case-stat-card {
-  border-top: 1px solid currentColor;
-  padding-top: 14px;
+  border-top: 0;
+  padding-top: 0;
+}
+
+/*
+ * Side by side, the cards hand their figure and label straight to the grid, so
+ * all the labels share one row. Without this a figure that wraps to two lines
+ * drops its own label below the others — which the rules used to hide.
+ */
+@media (min-width: 901px) {
+  .case-stat-grid {
+    grid-template-columns: none;
+    grid-template-rows: auto auto;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    row-gap: 8px;
+  }
+
+  .case-stat-card {
+    display: contents;
+  }
+
+  .case-stat-card strong {
+    margin-bottom: 0;
+  }
 }
 
 .case-stat-card strong {
@@ -1670,7 +1966,7 @@ ol.case-bullet-list li::before {
   grid-template-columns: clamp(280px, 24vw, 400px) minmax(0, 1fr);
   gap: clamp(32px, 5vw, 88px);
   align-items: start;
-  padding-top: 40px;
+  padding-top: clamp(36px, 3.4vw, 56px);
   border-top: 1px solid var(--line);
 }
 
@@ -1693,8 +1989,12 @@ ol.case-bullet-list li::before {
   color: var(--ink-faint);
 }
 
+/*
+ * The whole intro travels, not just the link. Sticking the link on its own made
+ * it slide up over the chapter title on every scroll.
+ */
 @media (min-width: 1241px) {
-  .case-section-back {
+  .case-study-section__intro {
     position: sticky;
     top: 32px;
     z-index: 2;
@@ -1747,13 +2047,15 @@ ol.case-bullet-list li::before {
 }
 
 .case-page--yandex-turkey .case-hero__media,
-.case-page--cat-app .case-hero__media {
+.case-page--cat-app .case-hero__media,
+.case-page--pet-injection-tracker .case-hero__media {
   border: 0;
   background: transparent;
 }
 
 .case-page--yandex-turkey .case-hero__media img,
-.case-page--cat-app .case-hero__media img {
+.case-page--cat-app .case-hero__media img,
+.case-page--pet-injection-tracker .case-hero__media img {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -1786,7 +2088,7 @@ ol.case-bullet-list li::before {
 
 /* Standalone blocks (outside a run) keep the card treatment. */
 .case-content-block {
-  padding: 24px;
+  padding: clamp(24px, 2.2vw, 36px);
   background: var(--paper);
 }
 
@@ -1799,6 +2101,19 @@ ol.case-bullet-list li::before {
   font-size: 24px;
   line-height: 1.08;
   letter-spacing: -0.03em;
+}
+
+/*
+ * Block headings sat directly on their body copy — the gap was literally 0, so
+ * the pair read as one clump. This is the inner step, deliberately smaller than
+ * the card padding around it. The collapsible title is excluded: it sits in a
+ * flex row next to its chevron, not above content.
+ */
+.case-content-block h3:not(:last-child),
+.case-note-card h3:not(:last-child),
+.case-pain-section h3:not(:last-child),
+.case-insight-section h3:not(:last-child) {
+  margin-bottom: 16px;
 }
 
 .case-rich-text {
@@ -2026,10 +2341,6 @@ ol.case-bullet-list li::before {
   word-break: break-word;
 }
 
-.case-stat-grid--compact .case-stat-card {
-  border-top-color: var(--line);
-}
-
 .case-stat-grid--compact .case-stat-card span {
   color: var(--ink-faint);
 }
@@ -2165,7 +2476,8 @@ ol.case-bullet-list li::before {
 
   .hero-panel::before,
   .hero-panel__object::before,
-  .hero-panel__object img {
+  .hero-panel__object img,
+  .hero-panel__object video {
     animation: none;
   }
 }
@@ -2190,20 +2502,6 @@ ol.case-bullet-list li::before {
     grid-template-columns: 1fr;
   }
 
-  .hero-panel {
-    height: auto;
-    min-height: auto;
-  }
-
-  .hero-panel__object {
-    position: relative;
-    top: auto;
-    right: auto;
-    transform: none;
-    width: min(56%, 320px);
-    margin: 8px 0 0 auto;
-  }
-
   .case-hero__media {
     height: 360px;
   }
@@ -2217,14 +2515,55 @@ ol.case-bullet-list li::before {
     object-position: center top;
   }
 
+  /* Stacked layout: the back link now sits under the title and needs room. */
   .case-study-section__intro {
-    gap: 8px;
+    gap: 14px;
   }
 }
 
+/*
+ * The hero stacks later than everything else. The rest of the page runs out of
+ * room at 1240 — three-column rows, side-by-side cards — but the hero carries
+ * only copy and one object, and those still sit side by side comfortably down
+ * to the mobile breakpoint. Stacking them at 1240 dropped the object below the
+ * text and left the bottom-left of a full-height panel empty.
+ */
 @media (max-width: 900px) {
   :root {
     --gutter: 18px;
+  }
+
+  .hero-panel {
+    min-height: auto;
+  }
+
+  /* The panel is content-height here, so there is no leftover space to lift. */
+  .hero-panel__grid {
+    padding-bottom: 0;
+  }
+
+  /*
+   * Last element in the flow here, and deliberately not given room for its full
+   * height: the bottom third sits past the panel's edge, where the panel's own
+   * clipping cuts it, so the object rises into the composition instead of
+   * floating whole inside it.
+   *
+   * The negative margin is a share of the object's own width — percentages in
+   * margins resolve against the container width, the same basis the width uses,
+   * and the aspect ratio is ~1:1, so it stands in for a share of the height.
+   * The panel's own bottom padding comes off too, since it is laid out below
+   * the object and would otherwise hand a third of the crop straight back.
+   * The panel loses that height along with it.
+   */
+  .hero-panel__object {
+    --object-size: min(56%, 320px);
+
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
+    width: var(--object-size);
+    margin: 8px 0 calc(var(--object-size) * -0.335 - var(--hero-pad-bottom)) auto;
   }
 
   .section-header {
@@ -2271,8 +2610,14 @@ ol.case-bullet-list li::before {
     max-width: none;
   }
 
-  .hero-panel__footer {
-    grid-template-columns: 1fr;
+  .hero-panel__intro {
+    max-width: none;
+  }
+
+  /* Wrapped rows read better packed left than stretched edge to edge. */
+  .hero-clients {
+    justify-content: flex-start;
+    gap: 16px clamp(24px, 5vw, 40px);
   }
 }
 
@@ -2290,15 +2635,100 @@ ol.case-bullet-list li::before {
     padding: 20px;
   }
 
-  .hero-panel__top,
-  .site-topbar {
-    flex-direction: column;
-    align-items: flex-start;
+  .hero-panel {
+    --hero-pad-bottom: 20px;
   }
 
-  .hero-panel__top-contacts,
-  .site-topbar__contacts {
-    justify-content: flex-start;
+  /*
+   * Below this width the pills no longer fit next to the logo, so they move
+   * into a panel behind the burger and the row stays one line.
+   */
+  .nav-menu__burger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--inverse-line);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    transition:
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .nav-menu__burger:hover {
+    background: rgba(247, 248, 252, 0.12);
+  }
+
+  .nav-menu__burger span {
+    width: 16px;
+    height: 1.5px;
+    border-radius: 2px;
+    background: currentColor;
+    transition: transform 200ms ease;
+  }
+
+  .nav-menu.is-open .nav-menu__burger span:first-of-type {
+    transform: translateY(3.25px) rotate(45deg);
+  }
+
+  .nav-menu.is-open .nav-menu__burger span:last-of-type {
+    transform: translateY(-3.25px) rotate(-45deg);
+  }
+
+  .nav-menu__links {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 6;
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 170px;
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--inverse-line);
+    border-radius: 20px;
+    background: rgba(12, 24, 108, 0.94);
+    backdrop-filter: blur(16px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      visibility 180ms;
+  }
+
+  .nav-menu.is-open .nav-menu__links {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .nav-menu__links .contact-link {
+    text-align: center;
+  }
+
+  /* Ink variant: the internal pages are light, so the panel flips to paper. */
+  .nav-menu--ink .nav-menu__burger {
+    border-color: var(--line);
+    color: var(--ink-soft);
+  }
+
+  .nav-menu--ink .nav-menu__burger:hover {
+    background: rgba(13, 17, 23, 0.05);
+  }
+
+  .nav-menu--ink .nav-menu__links {
+    border-color: var(--line);
+    background: var(--paper);
+    box-shadow: 0 18px 40px rgba(13, 17, 23, 0.14);
   }
 
   .case-hero__media {
@@ -2316,13 +2746,39 @@ ol.case-bullet-list li::before {
     width: 130px;
   }
 
-  .hero-panel__portrait img {
-    width: 62px;
-    height: 62px;
+  /* The flat card padding puts the menu on the panel edge; the hero buys back
+     the same breathing room it has on desktop. */
+  .hero-panel {
+    padding-top: 34px;
   }
 
+  .hero-panel__intro {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* Stacked above the text here, so there is no cap line to align to. */
+  .hero-panel__portrait {
+    width: 116px;
+    margin-top: 0;
+  }
+
+  /*
+   * Six logos cannot hold one line here, and a wrapped flex row leaves the
+   * second row ragged under the first. A fixed three-column grid puts the two
+   * rows on the same columns, so the band still reads as a block.
+   */
+  .hero-clients {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px 12px;
+    justify-items: center;
+  }
+
+  /* Redefining the size re-resolves the clipping margin set above. */
   .hero-panel__object {
-    width: min(72%, 260px);
+    --object-size: min(72%, 260px);
+
     margin-right: -8px;
   }
 
@@ -2793,9 +3249,9 @@ ol.case-bullet-list li::before {
   /* Grows with the viewport, so the landscape card doesn't end up with a small
      illustration floating in a large empty corner. */
   .editorial-card__graphic {
-    right: -8%;
-    bottom: -8%;
-    width: min(62%, clamp(340px, 47vw, 430px));
+    right: -5%;
+    bottom: -6%;
+    width: min(40%, clamp(220px, 30vw, 278px));
   }
 }
 
@@ -2820,8 +3276,8 @@ ol.case-bullet-list li::before {
   /* Offsets in pixels, not percentages: the card runs very tall on phones, so a
      percentage bleed would slice the artwork in half. */
   .editorial-card__graphic {
-    right: -14px;
-    bottom: -18px;
-    width: min(74%, 300px);
+    right: -10px;
+    bottom: -12px;
+    width: min(48%, 194px);
   }
 }

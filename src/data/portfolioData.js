@@ -30,12 +30,18 @@ import betboomBannerOverlay from '../assets/betboom-banner-overlay.png';
 import betboomBannerVideo from '../assets/betboom-banner.webm';
 import betboomCoverImage from '../assets/betboom-cover.png';
 import profilePhoto from '../assets/profile-photo.jpg';
+import avitoLogo from '../assets/logos/avito.svg';
+import betboomLogo from '../assets/logos/betboom.svg';
+import kokocLogo from '../assets/logos/kokoc-group.svg';
+import revvyLogo from '../assets/logos/revvy.svg';
+import ujinLogo from '../assets/logos/ujin.svg';
+import yandexLogo from '../assets/logos/yandex.svg';
 
 export const profile = {
   name: 'Vladislava Berestova',
   title: 'Product Designer',
   summary: [
-    'Product Designer with 6+ years of experience designing B2C and B2B digital products across gaming, fintech, proptech, HR Tech, logistics, and SaaS.',
+    'Product Designer with 7 years of experience designing B2C and B2B digital products across gaming, fintech, proptech, HR Tech, logistics, and SaaS.',
     'I enjoy solving complex product challenges from user research and product discovery to scalable UX, design systems, and feature delivery.',
   ],
   focusAreas: [
@@ -46,7 +52,7 @@ export const profile = {
     'Internal tools',
   ],
   highlights: [
-    { value: '6+ years', label: 'Designing B2C and B2B products' },
+    { value: '7 years', label: 'Designing B2C and B2B products' },
     { value: 'E2E', label: 'From discovery to launch and iteration' },
     { value: 'Global', label: 'Products across gaming, SaaS, fintech, and logistics' },
   ],
@@ -65,12 +71,10 @@ export const profile = {
       href: '/Vladislava-Berestova-CV.pdf',
     },
   ],
-  clientLine:
-    'Worked with clients including Yandex Turkey, Avito, Kokoc Group, and other technology companies through design agencies.',
   availability: {
-    title: 'Open to Product Designer roles.',
+    title: 'Open to Product Designer roles',
     paragraphs: [
-      'Six years of designing B2C and B2B products across gaming, fintech, proptech, HR Tech, logistics, and SaaS — in-house, in agencies, and with startup teams.',
+      'Seven years of designing B2C and B2B products across gaming, fintech, proptech, HR Tech, logistics, and SaaS — in-house, in agencies, and with startup teams.',
     ],
   },
 };
@@ -183,10 +187,10 @@ export const cases = [
 
 export const designConceptTeaser = {
   label: 'Design Concepts',
-  title: 'Dribbble shots and concept studies.',
+  title: 'Dribbble shots and concept studies',
   description:
-    'A mix of self-initiated studies made in my free time and portfolio concepts created as part of my work at Ronas IT. Together, they are a space to explore art direction, visual systems, and interface craft.',
-  footer: 'Independent studies / Ronas IT portfolio work / visual systems',
+    'A mix of self-initiated studies made in my free time and portfolio concepts created alongside my product work. Together, they are a space to explore art direction, visual systems, and interface craft.',
+  footer: 'Independent studies / portfolio work / visual systems',
   linkLabel: 'Open concept archive',
   href: '/design-concepts',
   shots: [
@@ -200,10 +204,10 @@ export const designConceptTeaser = {
 export const designConcepts = {
   intro: {
     eyebrow: 'Concept Archive',
-    title: 'Dribbble shots and concept studies.',
+    title: 'Dribbble shots and concept studies',
     description:
-      'This archive brings together two sides of my concept practice: self-initiated studies made in my free time, and portfolio-focused concepts created as part of my work at Ronas IT. The projects gave me room to explore art direction, layout, visual systems, and interface craft beyond the constraints of day-to-day product delivery.',
-    meta: 'Independent practice / Ronas IT portfolio work / published on Dribbble',
+      'This archive brings together two sides of my concept practice: self-initiated studies made in my free time, and portfolio-focused concepts created alongside my product work. The projects gave me room to explore art direction, layout, visual systems, and interface craft beyond the constraints of day-to-day product delivery.',
+    meta: 'Independent practice / portfolio work / published on Dribbble',
     href: 'https://dribbble.com/Meoosh',
     hrefLabel: 'dribbble.com/Meoosh',
   },
@@ -279,7 +283,6 @@ export const experiences = [
   {
     id: 'betboom',
     period: 'Apr 2025 — Present',
-    location: 'Remote',
     company: 'BetBoom',
     role: 'Product Designer',
     summary:
@@ -293,7 +296,6 @@ export const experiences = [
   {
     id: 'agency-group',
     period: 'May 2022 — Mar 2025',
-    location: 'Remote',
     company: 'Ronas IT / Doubletapp / Luch / Revvy',
     role: 'Product Designer',
     summary:
@@ -307,7 +309,6 @@ export const experiences = [
   {
     id: 'ujin',
     period: 'Jan 2021 — Mar 2022',
-    location: 'Remote',
     company: 'Ujin (Unicorn)',
     role: 'Product Designer',
     summary:
@@ -322,7 +323,6 @@ export const experiences = [
   {
     id: 'helphub',
     period: 'May 2020 — Jan 2021',
-    location: 'Remote',
     company: 'HelpHub',
     role: 'Product Designer',
     summary:
@@ -337,7 +337,6 @@ export const experiences = [
   {
     id: 'freelance',
     period: 'Sep 2019 — Mar 2020',
-    location: 'Remote',
     company: 'Self-employed',
     role: 'Freelance Graphic & UX/UI Designer',
     summary:
@@ -350,13 +349,21 @@ export const experiences = [
   },
 ];
 
+/*
+ * Client band under the hero copy. Official brand marks, flattened to white on
+ * the blue panel by a CSS filter.
+ *
+ * Every file is cropped tight to its artwork, but the artwork itself holds
+ * different things — all-caps wordmarks, lowercase with descenders, marks that
+ * overshoot the letters. Matching box heights therefore looks ragged, so
+ * `height` equalises cap height instead, and `nudge` puts the baselines on one
+ * line. Both were read off a zoomed render of the row.
+ */
 export const clients = [
-  'BetBoom',
-  'Yandex Turkey',
-  'Avito',
-  'Kokoc Group',
-  'Revvy',
-  'Ujin',
-  'HelpHub',
-  'IQuoto',
+  { name: 'BetBoom', logo: betboomLogo, height: 20, nudge: 0 },
+  { name: 'Yandex', logo: yandexLogo, height: 22, nudge: 0 },
+  { name: 'Avito', logo: avitoLogo, height: 19, nudge: 0 },
+  { name: 'Kokoc Group', logo: kokocLogo, height: 22, nudge: 0 },
+  { name: 'Ujin', logo: ujinLogo, height: 19, nudge: -1 },
+  { name: 'Revvy', logo: revvyLogo, height: 20, nudge: 0 },
 ];

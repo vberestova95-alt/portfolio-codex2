@@ -22,7 +22,12 @@ import { HomePage } from './pages/HomePage.jsx';
 import { CaseStudyPage } from './pages/BetboomPassPage.jsx';
 import { DesignConceptsPage } from './pages/DesignConceptsPage.jsx';
 import { NotFoundPage } from './pages/ErrorPage.jsx';
+import {
+  PetInjectionTrackerPage,
+  petInjectionTrackerCaseStudy,
+} from './pages/PetInjectionTrackerPage.jsx';
 
+const CASE_ONLY_MODE = import.meta.env.VITE_CASE_ONLY === 'true';
 const CASE_STUDIES_BY_PATH = {
   '/betboom-pass': betboomPassCaseStudy,
   '/cat-app': catAppCaseStudy,
@@ -32,6 +37,7 @@ const CASE_STUDIES_BY_PATH = {
 };
 
 const DETAIL_PATHS = new Set([...Object.keys(CASE_STUDIES_BY_PATH), '/design-concepts']);
+const PET_INJECTION_TRACKER_PATH = '/pet-injection-tracker';
 
 function normalizePathname(pathname) {
   const rawPath = pathname || '/';
@@ -64,6 +70,13 @@ function getPageMetadata(pathname, currentCaseStudy) {
     };
   }
 
+  if (pathname === PET_INJECTION_TRACKER_PATH) {
+    return {
+      title: `${petInjectionTrackerCaseStudy.hero.title} - Vladislava Berestova`,
+      description: petInjectionTrackerCaseStudy.hero.description,
+    };
+  }
+
   if (currentCaseStudy) {
     return {
       title: `${currentCaseStudy.hero.title} - Vladislava Berestova`,
@@ -75,22 +88,41 @@ function getPageMetadata(pathname, currentCaseStudy) {
 }
 
 export function App() {
-  const pathname =
+  const currentBrowserPathname =
     typeof window === 'undefined' ? '/' : normalizePathname(window.location.pathname);
+  const pathname = CASE_ONLY_MODE ? PET_INJECTION_TRACKER_PATH : currentBrowserPathname;
   const currentCaseStudy = CASE_STUDIES_BY_PATH[pathname] ?? null;
   const metadata = getPageMetadata(pathname, currentCaseStudy);
 
   useEffect(() => observeReveal(), []);
 
-  useEffect(
-    () =>
-      attachReturnNavigation({
-        pathname,
-        detailPaths: DETAIL_PATHS,
-        normalizePathname,
-      }),
-    [pathname],
-  );
+  useEffect(() => {
+    if (CASE_ONLY_MODE) {
+      return undefined;
+    }
+
+    return attachReturnNavigation({
+      pathname,
+      detailPaths: DETAIL_PATHS,
+      normalizePathname,
+    });
+  }, [pathname]);
+
+  useEffect(() => {
+    if (
+      typeof window === 'undefined' ||
+      !CASE_ONLY_MODE ||
+      currentBrowserPathname === PET_INJECTION_TRACKER_PATH
+    ) {
+      return;
+    }
+
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `${PET_INJECTION_TRACKER_PATH}${window.location.search}${window.location.hash}`,
+    );
+  }, [currentBrowserPathname]);
 
   useEffect(() => {
     if (!metadata) {
@@ -102,7 +134,9 @@ export function App() {
     const openGraphTitle = document.querySelector('meta[property="og:title"]');
     const openGraphDescription = document.querySelector('meta[property="og:description"]');
     const openGraphUrl = document.querySelector('meta[property="og:url"]');
-    const canonicalUrl = `https://vberestova.com${pathname === '/' ? '/' : pathname}`;
+    const siteOrigin =
+      typeof window === 'undefined' ? 'https://vberestova.com' : window.location.origin;
+    const canonicalUrl = `${siteOrigin}${pathname === '/' ? '/' : pathname}`;
 
     document.title = metadata.title;
     description?.setAttribute('content', metadata.description);
@@ -114,6 +148,10 @@ export function App() {
 
   if (pathname === '/design-concepts') {
     return <DesignConceptsPage archive={designConcepts} profile={profile} />;
+  }
+
+  if (pathname === PET_INJECTION_TRACKER_PATH) {
+    return <PetInjectionTrackerPage profile={profile} />;
   }
 
   if (currentCaseStudy) {

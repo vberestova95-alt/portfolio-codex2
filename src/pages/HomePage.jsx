@@ -1,17 +1,46 @@
 import React, { useEffect, useRef } from 'react';
-import knotGraphic from '../assets/editorial-knot.png';
-import orbitGraphic from '../assets/editorial-orbit.png';
-import { ContactLink } from '../components/ContactLink.jsx';
+/*
+ * One object carries the whole site: the hero, the practice card and the
+ * footer all render this same knot, at different scales and orientations. The
+ * hero used to run a bubble clip instead, which read as a separate visual
+ * language — the two files are still in assets/ if that direction comes back.
+ */
+import editorialObject from '../assets/editorial-object.webp';
+import { NavMenu } from '../components/NavMenu.jsx';
 import { SiteFooter } from '../components/SiteFooter.jsx';
-import { attachPointerObject } from '../lib/pointerObject.js';
+import { attachHeroObject } from '../lib/heroObject.js';
 import { attachShotTrail } from '../lib/shotTrail.js';
 
 // Keep the section in code, but hidden until the copy is rewritten.
 const SHOW_ACHIEVEMENTS_SECTION = false;
 
+// Client logo band under the hero copy. Assets, data and styles are all still
+// in place — flip this back to true to bring the row back.
+const SHOW_CLIENT_LOGOS = false;
+
+/*
+ * The brand is already on the page it links to, so a plain navigation to "/" is
+ * not guaranteed to do anything visible. Reloading is the explicit behaviour —
+ * it puts the hero back at the top and restarts the reveal pass. Modified
+ * clicks are left alone so the link still opens in a new tab.
+ */
+function handleBrandClick(event) {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+    return;
+  }
+
+  event.preventDefault();
+  window.location.reload();
+}
+
+/*
+ * Without the eyebrow the content would be auto-placed into the label's own
+ * column, so the modifier collapses the header to one full-width column and the
+ * heading starts flush left, on the same line as whatever follows it.
+ */
 function SectionHeader({ label, title, description }) {
   return (
-    <header className="section-header" data-reveal>
+    <header className={`section-header${label ? '' : ' section-header--no-label'}`} data-reveal>
       {label ? <p className="section-label">{label}</p> : null}
       <div className="section-header__content">
         <h2>{title}</h2>
@@ -178,6 +207,7 @@ function ConceptTeaser({ teaser }) {
 export function HomePage({
   profile,
   cases,
+  clients,
   designConceptTeaser,
   achievements,
   experiences,
@@ -185,23 +215,17 @@ export function HomePage({
   const heroRef = useRef(null);
   const objectRef = useRef(null);
 
-  useEffect(() => attachPointerObject(heroRef.current, objectRef.current), []);
+  useEffect(() => attachHeroObject(heroRef.current, objectRef.current), []);
 
   return (
     <div className="home-page">
       <section className="hero-shell">
         <div className="home-shell hero-panel" ref={heroRef}>
           <div className="hero-panel__top">
-            <span>{profile.name}</span>
-            <div className="hero-panel__top-contacts" aria-label="Contact links">
-              {profile.contacts.map((contact) => (
-                <ContactLink
-                  key={contact.label}
-                  contact={contact}
-                  className="contact-link"
-                />
-              ))}
-            </div>
+            <a className="hero-panel__brand" href="/" onClick={handleBrandClick}>
+              {profile.name}
+            </a>
+            <NavMenu contacts={profile.contacts} />
           </div>
 
           <div className="hero-panel__grid">
@@ -209,29 +233,47 @@ export function HomePage({
               <h1>
                 Product <span className="serif-accent">Designer</span> for
                 <br />
-                complex digital systems.
+                complex digital systems
               </h1>
 
-              {profile.summary.map((paragraph) => (
-                <p key={paragraph} className="hero-panel__lead">
-                  {paragraph}
-                </p>
-              ))}
+              <div className="hero-panel__intro">
+                <div className="hero-panel__portrait">
+                  <img src={profile.photo.src} alt={profile.photo.alt} />
+                </div>
+
+                <div className="hero-panel__intro-copy">
+                  {profile.summary.map((paragraph) => (
+                    <p key={paragraph} className="hero-panel__lead">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="hero-panel__object" aria-hidden="true">
-            <div className="hero-panel__object-float">
-              <img ref={objectRef} src={knotGraphic} alt="" />
-            </div>
+            <img ref={objectRef} src={editorialObject} alt="" />
           </div>
 
-          <div className="hero-panel__footer">
-            <div className="hero-panel__portrait">
-              <img src={profile.photo.src} alt={profile.photo.alt} />
+          {SHOW_CLIENT_LOGOS ? (
+            <div className="hero-panel__footer">
+              <ul className="hero-clients" aria-label="Clients and products">
+                {clients.map((client) => (
+                  <li key={client.name} className="hero-client">
+                    <img
+                      src={client.logo}
+                      alt={client.name}
+                      style={{
+                        '--logo-h': `${client.height}px`,
+                        '--logo-y': `${client.nudge}px`,
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p>{profile.clientLine}</p>
-          </div>
+          ) : null}
         </div>
       </section>
 
@@ -249,8 +291,8 @@ export function HomePage({
 
           <article className="editorial-card editorial-card--blue editorial-card--practice" data-reveal>
             <h3 className="editorial-card__title">
-              Recently focused on <span className="serif-accent">design systems</span>,
-              AI-assisted workflows, and internal tools.
+              Focused on <span className="serif-accent">design systems</span>, AI-assisted
+              workflows, and internal tools
             </h3>
             <p className="editorial-card__copy">
               I enjoy solving complex product challenges from discovery to delivery, working
@@ -262,7 +304,7 @@ export function HomePage({
               <li>Codex</li>
               <li>Figma AI</li>
             </ul>
-            <img className="editorial-card__graphic" src={orbitGraphic} alt="" aria-hidden="true" />
+            <img className="editorial-card__graphic" src={editorialObject} alt="" aria-hidden="true" />
           </article>
         </div>
       </section>
@@ -271,7 +313,7 @@ export function HomePage({
         <section className="section home-shell">
           <SectionHeader
             label="Key Achievements"
-            title="A track record of shipping, scaling, validating, and improving the way teams design."
+            title="A track record of shipping, scaling, validating, and improving the way teams design"
           />
 
           <div className="achievement-grid">
@@ -287,23 +329,18 @@ export function HomePage({
         </section>
       ) : null}
 
-      <section className="section home-shell">
-        <SectionHeader
-          label="Experience"
-          title="Product work across in-house teams, agencies, startup environments, and freelance delivery."
-        />
+      <section className="section home-shell experience-section">
+        <SectionHeader title="Product work across in-house teams, agencies, startup environments, and freelance delivery" />
 
         <div className="experience-table">
           {experiences.map((item) => (
             <article key={item.id} className="experience-row" data-reveal>
-              <div className="experience-row__meta">
-                <span>{item.period}</span>
-                <span>{item.location}</span>
-              </div>
-
               <div className="experience-row__title">
                 <h3>{item.company}</h3>
-                <p>{item.role}</p>
+                <p>
+                  {item.role}
+                  <span className="experience-row__period">{item.period}</span>
+                </p>
               </div>
 
               <div className="experience-row__body">

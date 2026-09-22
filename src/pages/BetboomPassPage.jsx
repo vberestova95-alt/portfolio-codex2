@@ -622,7 +622,14 @@ function Lightbox({ src, alt, onClose }) {
   );
 }
 
-export function CaseStudyPage({ caseStudy, cases = [], profile }) {
+export function CaseStudyPage({
+  caseStudy,
+  cases = [],
+  profile,
+  headerBrandHref,
+  showReturnHome = true,
+  showSectionBackLink = true,
+}) {
   const [lightbox, setLightbox] = useState(null);
 
   const otherCases = cases.filter((item) => item.href !== `/${caseStudy.slug}`);
@@ -652,7 +659,13 @@ export function CaseStudyPage({ caseStudy, cases = [], profile }) {
       ) : null}
 
       <div className="case-page__shell">
-        {profile ? <SiteHeader profile={profile} /> : null}
+        {profile ? (
+          <SiteHeader
+            profile={profile}
+            brandHref={headerBrandHref}
+            showReturnHome={showReturnHome}
+          />
+        ) : null}
 
         <section className="case-hero">
           <div className="case-hero__copy">
@@ -672,12 +685,18 @@ export function CaseStudyPage({ caseStudy, cases = [], profile }) {
         <div className="case-chapters">
           {caseStudy.sections.map((section) => (
             <section key={section.id} id={section.id} className="case-study-section" data-reveal>
+              {/*
+                * Title first: it has to line up with the top of the chapter's
+                * content, and a link above it pushed the title down instead.
+                */}
               <div className="case-study-section__intro">
-                <a className="case-back-link case-section-back" href={caseStudy.backHref}>
-                  <span aria-hidden="true">←</span>
-                  <span>All work</span>
-                </a>
                 <h2>{section.title}</h2>
+                {showSectionBackLink ? (
+                  <a className="case-back-link case-section-back" href={caseStudy.backHref}>
+                    <span aria-hidden="true">←</span>
+                    <span>All work</span>
+                  </a>
+                ) : null}
               </div>
 
               <div className="case-study-section__content">

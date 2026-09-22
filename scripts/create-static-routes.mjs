@@ -1,14 +1,13 @@
+/*
+ * Copies the built index.html into a directory per route, so a direct hit on a
+ * case URL resolves as a static file. Which routes exist depends on the deploy
+ * target — see deploy-targets.mjs.
+ */
 import { copyFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
+import { resolveDeployTarget } from './deploy-targets.mjs'
 
-const routes = [
-  'betboom-pass',
-  'cat-app',
-  'design-concepts',
-  'iquoto',
-  'kokoc-group',
-  'yandex-turkey',
-]
+const { routes } = resolveDeployTarget()
 
 const distDirectory = new URL('../dist/', import.meta.url)
 const source = new URL('index.html', distDirectory)
