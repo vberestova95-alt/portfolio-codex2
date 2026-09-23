@@ -171,7 +171,7 @@ export const cases = [
   {
     id: 'iquoto',
     title: 'IQuoto',
-    year: '2022–2025',
+    year: '2022',
     category: 'Fintech / Registration Flow',
     description:
       'A registration funnel redesign for an online brokerage platform with high friction and a significant drop-off at the personal data step.',

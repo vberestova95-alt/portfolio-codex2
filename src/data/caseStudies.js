@@ -557,7 +557,7 @@ export const iquotoCaseStudy = {
     title: 'IQuoto',
     description:
       'Seven out of ten people abandoned registration at the personal data step. I spent the project figuring out how much of that data we were legally required to ask for, and cutting the rest.',
-    meta: 'Product Designer / 2022-2025',
+    meta: 'Product Designer / 2022',
     image: {
       src: iquotoCaseHero,
       alt: 'Hero screen of the IQuoto case study',
