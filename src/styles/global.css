@@ -545,6 +545,16 @@ button {
   gap: 14px;
 }
 
+/* The headline breaks differently on a phone — see the mobile block. */
+.hero-br--mobile {
+  display: none;
+}
+
+/* Phone only — see the mobile block. */
+.hero-panel__next {
+  display: none;
+}
+
 .client-band,
 .home-footer__links {
   display: flex;
@@ -1118,12 +1128,38 @@ button {
   }
 }
 
-@media (min-width: 901px) {
+/*
+ * The cards stack at every width. `--stack-top` is set from script only for a
+ * card taller than the screen, which has to pin by its bottom edge instead —
+ * see lib/workStack.js.
+ */
+.work-stack {
+  gap: 0;
+  padding-bottom: 16vh;
+}
+
+.work-card {
+  position: sticky;
+  top: var(--stack-top, calc(18px + (var(--stack-index) * 12px)));
+  z-index: calc(10 + var(--stack-index));
+}
+
+.work-card:not(:first-child) {
+  margin-top: -8px;
+}
+
+/* Tighter steps on a phone, where every pixel of peek comes off the card. */
+@media (max-width: 640px) {
   .work-stack {
-    gap: 0;
-    padding-bottom: 16vh;
+    padding-bottom: 10vh;
   }
 
+  .work-card {
+    top: var(--stack-top, calc(12px + (var(--stack-index) * 8px)));
+  }
+}
+
+@media (min-width: 901px) {
   /*
    * The next card in the stack slides up over this one, so the bottom strip of
    * every card is covered before it has been read. The content itself is centred
@@ -1131,14 +1167,7 @@ button {
    * that incoming edge — it no longer carries the copy clear on its own.
    */
   .work-card {
-    position: sticky;
-    top: calc(18px + (var(--stack-index) * 12px));
-    z-index: calc(10 + var(--stack-index));
     padding-bottom: clamp(48px, 8vh, 96px);
-  }
-
-  .work-card:not(:first-child) {
-    margin-top: -8px;
   }
 }
 
@@ -2886,15 +2915,87 @@ ol.case-bullet-list li::before {
     padding-top: 34px;
   }
 
-  .hero-panel__intro {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  /*
+   * On a phone the headline leads — the specialism reads first — and the
+   * portrait drops to sit beside the short experience paragraph, so the photo
+   * is tied to the person it describes rather than floating above the title.
+   * The paragraph keeps one left edge to the right of the photo rather than
+   * wrapping back under it.
+   */
+  .hero-panel__grid {
+    padding-top: 24px;
   }
 
-  /* Stacked above the text here, so there is no cap line to align to. */
+  .hero-panel__intro {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    margin-top: 32px;
+  }
+
+  /* One paragraph is enough on a phone — the experience line carries it. */
+  .hero-panel__lead + .hero-panel__lead {
+    display: none;
+  }
+
+  /*
+   * Three set lines — "Product Designer / for complex / digital systems" — so
+   * the size follows the viewport: the longest line has to fill the measure
+   * without breaking on its own.
+   */
+  .hero-panel h1 {
+    font-size: calc((100vw - 76px) / 8);
+  }
+
+  .hero-br--desktop {
+    display: none;
+  }
+
+  .hero-br--mobile {
+    display: inline;
+  }
+
+  /* Set in the headline's face on a phone — the serif swash crowds a narrow line. */
+  .hero-panel h1 .serif-accent {
+    font-family: inherit;
+    font-style: normal;
+    font-weight: inherit;
+  }
+
+  /* Beside the first paragraph, so it takes the cap-line drop again. */
   .hero-panel__portrait {
-    width: 116px;
-    margin-top: 0;
+    width: 104px;
+  }
+
+  /*
+   * A closing step: text, not a filled button, which would outweigh the
+   * headline. Pinned to the bottom-left corner, opposite the object, so the two
+   * close the panel together. Padded to a 44px target without looking bigger.
+   */
+  .hero-panel__next {
+    position: absolute;
+    z-index: 2;
+    left: 20px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--inverse);
+  }
+
+  /* Underlined on the words only, so the rule stops short of the arrow. */
+  .hero-panel__next-label {
+    text-decoration: underline;
+    text-decoration-color: rgba(247, 248, 252, 0.4);
+    text-underline-offset: 5px;
+    transition: text-decoration-color 160ms ease;
+  }
+
+  .hero-panel__next:hover .hero-panel__next-label {
+    text-decoration-color: currentColor;
   }
 
   /*
@@ -2909,11 +3010,14 @@ ol.case-bullet-list li::before {
     justify-items: center;
   }
 
-  /* Redefining the size re-resolves the clipping margin set above. */
+  /*
+   * A compact accent in the bottom-right corner, cut by both edges, facing the
+   * closing link in the bottom-left one.
+   */
   .hero-panel__object {
-    --object-size: min(72%, 260px);
+    --object-size: 60%;
 
-    margin-right: -8px;
+    margin: 12px calc(var(--object-size) * -0.26) calc(var(--object-size) * -0.26 - var(--hero-pad-bottom)) auto;
   }
 
   .work-card h3,
@@ -3389,13 +3493,35 @@ ol.case-bullet-list li::before {
 
 /*
  * At 900px and below the chase is off (see shotTrail.js) and the cluster is
- * parked in the bottom-right corner. The card reserves room for it with
- * padding, so the copy can never run underneath.
+ * parked at the right, between the copy and the footer. The shot layer joins
+ * the flow as a band of its own, so the tags and the link keep the card's floor
+ * and the copy can never run underneath the shots. The band bleeds out through
+ * the card's right padding, so the fan still runs off the edge.
  */
 @media (max-width: 900px) {
   .concept-teaser {
+    --teaser-pad: 28px;
+
     min-height: 0;
-    padding-bottom: clamp(196px, 44vw, 268px);
+    padding: var(--teaser-pad);
+  }
+
+  .concept-teaser__copy {
+    order: 1;
+  }
+
+  .concept-teaser__shots {
+    order: 2;
+    position: relative;
+    inset: auto;
+    height: clamp(196px, 44vw, 268px);
+    margin: 20px calc(var(--teaser-pad) * -1) 0 0;
+    overflow: visible;
+    border-radius: 0;
+  }
+
+  .concept-teaser__footer {
+    order: 3;
   }
 
   .concept-teaser__shots::after {
@@ -3485,13 +3611,20 @@ ol.case-bullet-list li::before {
 }
 
 /*
- * Phones: the tags need the full width for one line, so the artwork moves into
- * a reserved band underneath them instead of sharing the floor.
+ * Phones: the tags need the full width for one line, so they keep the floor on
+ * their own and the artwork moves into the flow above them, at the right.
  */
 @media (max-width: 640px) {
+  .concept-teaser {
+    --teaser-pad: 20px;
+  }
+
   .editorial-card--practice {
     min-height: 0;
-    padding-bottom: clamp(186px, 56vw, 250px);
+  }
+
+  .editorial-card--practice .editorial-card__copy {
+    margin-bottom: 0;
   }
 
   .editorial-card--practice .editorial-card__copy {
@@ -3502,11 +3635,20 @@ ol.case-bullet-list li::before {
     padding-right: 0;
   }
 
-  /* Offsets in pixels, not percentages: the card runs very tall on phones, so a
-     percentage bleed would slice the artwork in half. */
+  /* In flow, pushed out through the right padding so it still bleeds off the edge. */
   .editorial-card__graphic {
-    right: -10px;
-    bottom: -12px;
+    order: 1;
+    position: relative;
+    right: auto;
+    bottom: auto;
+    align-self: flex-end;
     width: min(48%, 194px);
+    margin: 12px -20px 0 0;
+  }
+
+  .editorial-card--practice .editorial-card__tools {
+    order: 2;
+    margin-top: 0;
+    padding-top: 12px;
   }
 }

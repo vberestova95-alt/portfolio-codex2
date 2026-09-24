@@ -10,6 +10,7 @@ import { NavMenu } from '../components/NavMenu.jsx';
 import { SiteFooter } from '../components/SiteFooter.jsx';
 import { attachHeroObject } from '../lib/heroObject.js';
 import { attachShotTrail } from '../lib/shotTrail.js';
+import { attachWorkStack } from '../lib/workStack.js';
 
 // Keep the section in code, but hidden until the copy is rewritten.
 const SHOW_ACHIEVEMENTS_SECTION = false;
@@ -218,8 +219,10 @@ export function HomePage({
 }) {
   const heroRef = useRef(null);
   const objectRef = useRef(null);
+  const stackRef = useRef(null);
 
   useEffect(() => attachHeroObject(heroRef.current, objectRef.current), []);
+  useEffect(() => attachWorkStack(stackRef.current), []);
 
   return (
     <div className="home-page">
@@ -235,9 +238,10 @@ export function HomePage({
           <div className="hero-panel__grid">
             <div className="hero-panel__copy">
               <h1>
-                Product <span className="serif-accent">Designer</span> for
-                <br />
-                complex digital systems
+                Product <span className="serif-accent">Designer</span>
+                <br className="hero-br--mobile" /> for
+                <br className="hero-br--desktop" /> complex
+                <br className="hero-br--mobile" /> digital systems
               </h1>
 
               <div className="hero-panel__intro">
@@ -259,6 +263,11 @@ export function HomePage({
           <div className="hero-panel__object" aria-hidden="true">
             <img ref={objectRef} src={editorialObject} alt="" />
           </div>
+
+          <a className="hero-panel__next" href="#work">
+            <span className="hero-panel__next-label">View selected work</span>{' '}
+            <span aria-hidden="true">↓</span>
+          </a>
 
           {SHOW_CLIENT_LOGOS ? (
             <div className="hero-panel__footer">
@@ -282,7 +291,7 @@ export function HomePage({
       </section>
 
       <section className="section home-shell" id="work">
-        <div className="work-stack">
+        <div className="work-stack" ref={stackRef}>
           {cases.map((item, index) => (
             <WorkCard key={item.id} item={item} index={index} total={cases.length} />
           ))}
